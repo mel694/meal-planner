@@ -34,7 +34,7 @@ export default function SevenDinners() {
     dietary: [], cookingTime: "45 mins", budget: "Medium",
   });
 
-  const toggleDietary = (opt) =>
+  const toggleDietary = (opt: string) =>
     setPrefs((p) => ({
       ...p,
       dietary: p.dietary.includes(opt)
@@ -80,7 +80,7 @@ export default function SevenDinners() {
     let categoryItems = [];
     let categories = {};
 
-    const flushOl = (key) => {
+    const flushOl = (key: string | number) => {
       if (olBuffer.length > 0) {
         result.push(
           <ol key={`ol-${key}`} style={{padding:"0 0 0 20px",margin:"4px 0 8px"}}>
