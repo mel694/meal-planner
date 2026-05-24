@@ -1,612 +1,347 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
-const DIETARY_OPTIONS = ["Vegetarian","Vegan","Gluten-free","Dairy-free","Nut-free","No pork","No shellfish"];
-const TIME_OPTIONS = ["20 mins","30 mins","45 mins","1 hour","No limit"];
-const BUDGET_OPTIONS = ["Budget","Medium","Premium"];
-
-const SUPERMARKETS = [
-  { id:"sainsburys", name:"Sainsbury's", color:"#F06C00", bg:"#FFF0E8", search:"https://www.sainsburys.co.uk/gol-ui/SearchResults/" },
-  { id:"tesco", name:"Tesco", color:"#005BA3", bg:"#E8F0FB", search:"https://www.tesco.com/groceries/en-GB/search?query=" },
-  { id:"asda", name:"Asda", color:"#78BE20", bg:"#EFF8E4", search:"https://groceries.asda.com/search/" },
-  { id:"morrisons", name:"Morrisons", color:"#FFD700", bg:"#FFFBE8", textColor:"#333", search:"https://groceries.morrisons.com/search?entry=" },
-  { id:"ocado", name:"Ocado", color:"#5DAC45", bg:"#E8F5EE", search:"https://www.ocado.com/search?entry=" },
-];
-
-const DAY_STYLES = {
-  Monday:    { bg:"#FF6B35", emoji:"🍗" },
-  Tuesday:   { bg:"#FFB347", emoji:"🐟" },
-  Wednesday: { bg:"#4CAF7D", emoji:"🥩" },
-  Thursday:  { bg:"#8B5CF6", emoji:"🌶️" },
-  Friday:    { bg:"#FF6B35", emoji:"🌮", special: true },
-  Saturday:  { bg:"#EC4899", emoji:"🥗" },
-  Sunday:    { bg:"#F59E0B", emoji:"🍖" },
-};
-
-const SHORT_DAYS = { Monday:"MON", Tuesday:"TUE", Wednesday:"WED", Thursday:"THU", Friday:"FRI", Saturday:"SAT", Sunday:"SUN" };
-const REPLACE_OPTIONS = ["🍕 Takeaway", "🍽️ Meal out", "✈️ Holiday", "🥡 Leftovers"];
-const CAT_EMOJIS = { "Meat & Fish":"🥩", "Fruit & Veg":"🥦", "Dairy & Eggs":"🥛", "Tins & Pantry":"🥫", "Bakery":"🍞", "Other":"🛒" };
-
-type FridgePhoto = { data: string; mediaType: string; preview: string };
-
-const Logo = () => (
-  <svg width="44" height="44" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="30" cy="30" r="28" fill="white"/>
-    <circle cx="30" cy="30" r="22" fill="#FFF0E8"/>
-    <path d="M30 12 Q35 15 36 20 Q35 18 30 18 Q25 18 24 20 Q25 15 30 12 Z" fill="#4CAF7D"/>
-    <ellipse cx="30" cy="32" rx="14" ry="11" fill="#FF6B35"/>
-    <ellipse cx="30" cy="30" rx="14" ry="11" fill="#FFB347"/>
-    <circle cx="24" cy="29" r="1.8" fill="#FF6B35"/>
-    <circle cx="33" cy="27" r="1.5" fill="#EC4899"/>
-    <circle cx="36" cy="33" r="1.6" fill="#8B5CF6"/>
-    <circle cx="27" cy="34" r="1.4" fill="#4CAF7D"/>
-    <text x="30" y="48" textAnchor="middle" fontSize="9" fontWeight="800" fill="#CC4400" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif">7</text>
+const Logo = ({ size = 44 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bowlGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#A78BFA"/>
+        <stop offset="100%" stopColor="#7C3AED"/>
+      </linearGradient>
+    </defs>
+    <path d="M8 30 Q8 48 30 50 Q52 48 52 30 Z" fill="url(#bowlGrad)"/>
+    <ellipse cx="30" cy="30" rx="22" ry="4" fill="#6D28D9"/>
+    <circle cx="20" cy="22" r="3.5" fill="#22C55E"/>
+    <circle cx="26" cy="18" r="3" fill="#FACC15"/>
+    <circle cx="33" cy="20" r="3.5" fill="#EF4444"/>
+    <circle cx="40" cy="22" r="3" fill="#F97316"/>
+    <circle cx="30" cy="14" r="2.5" fill="#16A34A"/>
+    <path d="M28 10 Q30 6 32 10 Q31 8 30 8 Q29 8 28 10 Z" fill="#16A34A"/>
+    <text x="14" y="32" fontSize="11" fontWeight="900" fill="white" fontFamily="-apple-system,sans-serif">7</text>
   </svg>
 );
 
-const BigLogo = () => (
-  <svg width="80" height="80" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style={{filter:"drop-shadow(0 6px 16px rgba(0,0,0,0.15))"}}>
-    <circle cx="30" cy="30" r="28" fill="white"/>
-    <circle cx="30" cy="30" r="22" fill="#FFF0E8"/>
-    <path d="M30 12 Q35 15 36 20 Q35 18 30 18 Q25 18 24 20 Q25 15 30 12 Z" fill="#4CAF7D"/>
-    <ellipse cx="30" cy="32" rx="14" ry="11" fill="#FF6B35"/>
-    <ellipse cx="30" cy="30" rx="14" ry="11" fill="#FFB347"/>
-    <circle cx="24" cy="29" r="1.8" fill="#FF6B35"/>
-    <circle cx="33" cy="27" r="1.5" fill="#EC4899"/>
-    <circle cx="36" cy="33" r="1.6" fill="#8B5CF6"/>
-    <circle cx="27" cy="34" r="1.4" fill="#4CAF7D"/>
-    <text x="30" y="48" textAnchor="middle" fontSize="9" fontWeight="800" fill="#CC4400" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif">7</text>
-  </svg>
-);
+export default function Home() {
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
-export default function SevenDinners() {
-  const [step, setStep] = useState("prefs");
-  const [loading, setLoading] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState("");
-  const [mealPlan, setMealPlan] = useState("");
-  const [error, setError] = useState("");
-  const [checked, setChecked] = useState<Record<string,boolean>>({});
-  const [selectedSupermarket, setSelectedSupermarket] = useState("sainsburys");
-  const [deletedDays, setDeletedDays] = useState<Record<string,string>>({});
-  const [swapping, setSwapping] = useState<string|null>(null);
-  const [macrosPerPerson, setMacrosPerPerson] = useState(false);
+  const features = [
+    { icon: "📅", color: "#22C55E", bg: "#DCFCE7", label: "AI Meal Planning" },
+    { icon: "🛒", color: "#A855F7", bg: "#F3E8FF", label: "Smart Shopping Lists" },
+    { icon: "📷", color: "#F59E0B", bg: "#FEF3C7", label: "Photo Upload" },
+    { icon: "🥫", color: "#EF4444", bg: "#FEE2E2", label: "Pantry Tracking" },
+    { icon: "🍴", color: "#06B6D4", bg: "#CFFAFE", label: "Allergy Filtering" },
+    { icon: "🎯", color: "#3B82F6", bg: "#DBEAFE", label: "Fitness Goals" },
+  ];
 
-  const [fridgePhotos, setFridgePhotos] = useState<FridgePhoto[]>([]);
-  const [alreadyHave, setAlreadyHave] = useState("");
-  const [analysing, setAnalysing] = useState(false);
+  const recipes = [
+    { name: "Creamy Garlic Chicken", time: "30 mins", emoji: "🍗", bg: "#FEF3C7" },
+    { name: "Veggie Stir Fry", time: "25 mins", emoji: "🥦", bg: "#DCFCE7" },
+    { name: "Salmon & Avocado Bowl", time: "20 mins", emoji: "🐟", bg: "#DBEAFE" },
+    { name: "One-Pot Pasta", time: "35 mins", emoji: "🍝", bg: "#FED7AA" },
+    { name: "Turkey Meatballs", time: "30 mins", emoji: "🍖", bg: "#FECACA" },
+  ];
 
-  const [prefs, setPrefs] = useState({
-    adults: 2, children: 2,
-    likes: "chicken, salmon, beef, pasta, roasted vegetables",
-    dislikes: "pork, blue cheese, very spicy food",
-    dietary: [] as string[], cookingTime: "45 mins", budget: "Medium",
-  });
+  const plans = [
+    {
+      name: "FREE",
+      tagline: "Get started with AI",
+      price: "£0",
+      period: "/month",
+      subprice: "Forever free",
+      icon: "🌱",
+      iconBg: "#DCFCE7",
+      iconColor: "#22C55E",
+      features: [
+        "AI generated recipes (limited)",
+        "Basic shopping list (manual)",
+        "Save up to 3 recipes",
+        "Access to free recipes",
+        "Community support",
+      ],
+      buttonText: "Get Started Free",
+      buttonStyle: "outline",
+      href: "/app",
+    },
+    {
+      name: "PREMIUM",
+      tagline: "Everything you need",
+      price: "£5.99",
+      period: "/month",
+      subprice: "30 day free trial",
+      icon: "👨‍🍳",
+      iconBg: "#F3E8FF",
+      iconColor: "#A855F7",
+      badge: "MOST POPULAR",
+      features: [
+        "AI meal planning",
+        "Family preferences",
+        "Fitness goals",
+        "Auto-generated shopping lists",
+        "Photo upload for recipes",
+        "Pantry tracking",
+        "Allergy filtering",
+        "Priority support",
+      ],
+      buttonText: "Start 30 Day Free Trial",
+      buttonStyle: "filled",
+      href: "#signup",
+    },
+    {
+      name: "PREMIUM PLUS",
+      tagline: "AI nutrition coach",
+      price: "£10.99",
+      period: "/month",
+      subprice: "30 day free trial",
+      icon: "⭐",
+      iconBg: "#DCFCE7",
+      iconColor: "#22C55E",
+      badge: "BEST VALUE",
+      features: [
+        "Everything in Premium",
+        "AI nutrition coach chatbot",
+        "Ask unlimited nutrition questions",
+        "Personalised advice & tips",
+        "Advanced goal tracking",
+        "Priority support",
+      ],
+      buttonText: "Start 30 Day Free Trial",
+      buttonStyle: "outline-green",
+      href: "#signup",
+    },
+  ];
 
-  const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
-  const totalPeople = prefs.adults + prefs.children;
-
-  const toggleDietary = (opt: string) =>
-    setPrefs((p) => ({ ...p, dietary: p.dietary.includes(opt) ? p.dietary.filter((x) => x !== opt) : [...p.dietary, opt] }));
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    for (const file of files) {
-      if (fridgePhotos.length >= 3) break;
-      const reader = new FileReader();
-      await new Promise<void>((resolve) => {
-        reader.onload = () => {
-          const result = reader.result as string;
-          const base64 = result.split(",")[1];
-          setFridgePhotos(prev => [...prev, { data: base64, mediaType: file.type, preview: result }]);
-          resolve();
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-    e.target.value = "";
-  };
-
-  const removePhoto = (idx: number) => {
-    setFridgePhotos(prev => prev.filter((_, i) => i !== idx));
-    setAlreadyHave("");
-  };
-
-  const analyseFridge = async () => {
-    if (fridgePhotos.length === 0) return;
-    setAnalysing(true);
-    try {
-      const res = await fetch("/api/mealplan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "analyse_fridge",
-          fridgePhotos: fridgePhotos.map(p => ({ data: p.data, mediaType: p.mediaType })),
-        }),
-      });
-      const data = await res.json();
-      if (data.ingredients) setAlreadyHave(data.ingredients);
-    } catch (e) { console.error(e); }
-    setAnalysing(false);
-  };
-
-  const generatePlan = async () => {
-    setLoading(true); setError(""); setMealPlan(""); setChecked({}); setDeletedDays({});
-    const msgs = alreadyHave
-      ? ["Checking what's in your fridge...","Matching meals to ingredients you have...","Building your seven dinners...","Building a smart shopping list..."]
-      : ["Finding the perfect recipes...","Matching meals to your tastes...","Building your seven dinners...","Adding macros and shopping list..."];
-    let i = 0; setLoadingMsg(msgs[0]);
-    const interval = setInterval(() => { i=(i+1)%msgs.length; setLoadingMsg(msgs[i]); }, 3000);
-    try {
-      const res = await fetch("/api/mealplan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...prefs, alreadyHave }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setMealPlan(data.mealPlan);
-      setStep("plan");
-    } catch (e) {
-      setError("Something went wrong. Please try again.");
-      setStep("prefs");
-    } finally {
-      clearInterval(interval);
-      setLoading(false);
-    }
-  };
-
-  const swapMeal = async (dayName: string) => {
-    setSwapping(dayName);
-    try {
-      const res = await fetch("/api/mealplan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...prefs, swapDay: dayName, currentPlan: mealPlan }),
-      });
-      const data = await res.json();
-      if (data.mealPlan) {
-        setMealPlan(prev => {
-          const lines = prev.split("\n");
-          const dayIndex = lines.findIndex(l => l.includes(`## ${dayName}`));
-          const nextDayIndex = lines.findIndex((l, i) => i > dayIndex && l.startsWith("## ") && !l.includes(dayName));
-          if (dayIndex === -1) return prev;
-          const end = nextDayIndex === -1 ? lines.length : nextDayIndex;
-          return [...lines.slice(0, dayIndex), ...data.mealPlan.split("\n"), ...lines.slice(end)].join("\n");
-        });
-      }
-    } catch (e) { console.error(e); }
-    setSwapping(null);
-  };
-
-  const handlePrint = () => window.print();
-
-  const parseMealPlan = (text: string) => {
-    const lines = text.split("\n");
-    const days: Array<{name:string, lines:string[]}> = [];
-    const shoppingLines: string[] = [];
-    let currentDay: {name:string, lines:string[]} | null = null;
-    let inShopping = false;
-
-    lines.forEach(line => {
-      if (line.includes("SHOPPING LIST") || line.includes("Shopping List") || line.includes("Shopping list")) {
-        if (currentDay) days.push(currentDay);
-        currentDay = null; inShopping = true; return;
-      }
-      if (inShopping) { shoppingLines.push(line); return; }
-      if (line.startsWith("## ")) {
-        if (currentDay) days.push(currentDay);
-        currentDay = { name: line.replace("## ","").trim(), lines: [] };
-      } else if (currentDay) {
-        currentDay.lines.push(line);
-      }
-    });
-    if (currentDay) days.push(currentDay);
-
-    const categories: Record<string, Array<{name:string}>> = {};
-    let currentCat = "";
-    shoppingLines.forEach(line => {
-      if (line.startsWith("**") && line.endsWith("**")) {
-        currentCat = line.replace(/\*\*/g,"");
-        if (!categories[currentCat]) categories[currentCat] = [];
-      } else if (line.match(/^- .+\| Sainsburys:.+\| Ocado:.+/)) {
-        const parts = line.replace("- ","").split(" | ");
-        if (currentCat) categories[currentCat].push({ name: parts[0] });
-      }
-    });
-    return { days, categories };
-  };
-
-  const formatMacroValue = (macroStr: string, divideBy: number) => {
-    // macroStr like "Calories: 450cal" or "Protein: 35g"
-    const match = macroStr.match(/^([^:]+):\s*(\d+(?:\.\d+)?)(.*)$/);
-    if (!match) return macroStr;
-    const [, label, num, unit] = match;
-    const value = Math.round(parseFloat(num) / divideBy);
-    return `${label.trim()}: ${value}${unit.trim()}`;
-  };
-
-  const renderDayLines = (lines: string[]) => {
-    const result: React.ReactNode[] = [];
-    let olBuffer: React.ReactNode[] = [];
-    let olKey = 0;
-    const flushOl = () => {
-      if (olBuffer.length > 0) { result.push(<ol key={`ol-${olKey++}`} style={{padding:"0 0 0 20px",margin:"4px 0 8px"}}>{olBuffer}</ol>); olBuffer = []; }
-    };
-
-    lines.forEach((line, i) => {
-      if (line.startsWith("### ")) {
-        flushOl();
-        result.push(<div key={i} style={{background:"#FFF8F5",border:"1px solid #FFE0CC",borderRadius:8,padding:"8px 12px",margin:"8px 0 4px"}}><span style={{fontSize:14,fontWeight:700,color:"#CC4400"}}>{line.replace("### ","")}</span></div>);
-      } else if (line.startsWith("**") && line.endsWith("**")) {
-        flushOl();
-        result.push(<div key={i} style={{fontSize:12,fontWeight:700,color:"#FF6B35",margin:"10px 0 4px",textTransform:"uppercase",letterSpacing:"0.04em"}}>{line.replace(/\*\*/g,"")}</div>);
-      } else if (line.includes("Calories:") || line.includes("Protein:") || line.includes("Carbs:") || line.includes("Fat:")) {
-        flushOl();
-        let macros = line.split("|").map(s => s.trim()).filter(Boolean);
-        if (macrosPerPerson && totalPeople > 0) {
-          macros = macros.map(m => formatMacroValue(m, totalPeople));
-        }
-        result.push(
-          <div key={i} style={{display:"flex",flexWrap:"wrap",gap:6,margin:"8px 0",alignItems:"center"}}>
-            {macros.map((m,j) => <span key={j} style={{fontSize:11,padding:"3px 10px",background:"#F0EEFF",border:"1px solid #D0C8FF",borderRadius:100,color:"#5040A0",fontWeight:600}}>{m}</span>)}
-            <span style={{fontSize:10,color:"#888",fontWeight:500,marginLeft:4}}>
-              {macrosPerPerson ? `per person (÷${totalPeople})` : "total recipe"}
-            </span>
-          </div>
-        );
-      } else if (line.includes("|") && !line.startsWith("-") && !line.startsWith("#")) {
-        flushOl();
-        const parts = line.split("|").map(s => s.trim()).filter(Boolean);
-        result.push(
-          <div key={i} style={{display:"flex",flexWrap:"wrap",gap:6,margin:"6px 0 10px"}}>
-            {parts.map((p,j) => <span key={j} style={{fontSize:12,padding:"3px 10px",background:"#FFF0E8",border:"1px solid #FFD4C0",borderRadius:100,color:"#CC4400",fontWeight:500}}>{p}</span>)}
-          </div>
-        );
-      } else if (line.startsWith("- ")) {
-        flushOl();
-        result.push(<li key={i} style={{fontSize:14,margin:"3px 0",marginLeft:16,color:"#444",lineHeight:1.5}}>{line.replace("- ","")}</li>);
-      } else if (line.match(/^\d+\. /)) {
-        olBuffer.push(<li key={i} style={{fontSize:14,margin:"4px 0",color:"#444",lineHeight:1.55}}>{line.replace(/^\d+\. /,"")}</li>);
-      } else if (line.trim()==="") {
-        flushOl();
-        result.push(<div key={i} style={{height:4}}/>);
-      } else {
-        flushOl();
-        result.push(<p key={i} style={{fontSize:14,margin:"3px 0",lineHeight:1.65,color:"#444"}}>{line}</p>);
-      }
-    });
-    flushOl();
-    return result;
-  };
-
-  const { days, categories } = step === "plan" && mealPlan ? parseMealPlan(mealPlan) : { days: [], categories: {} };
-  const totalItems = Object.values(categories).flat().length;
-  const checkedCount = Object.values(checked).filter(Boolean).length;
-  const ingredientsList = alreadyHave ? alreadyHave.split(",").map(s => s.trim()).filter(Boolean) : [];
+  const supermarkets = [
+    { name: "Tesco", color: "#005EB8" },
+    { name: "Sainsbury's", color: "#F06C00" },
+    { name: "ASDA", color: "#78BE20" },
+    { name: "Ocado", color: "#722F8F" },
+    { name: "Morrisons", color: "#FFD200" },
+    { name: "Aldi", color: "#00549A" },
+    { name: "Amazon Fresh", color: "#FF9900" },
+  ];
 
   return (
-    <div style={{minHeight:"100vh",background:"#FFF8F5",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:"100vh",background:"white",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",color:"#1F2937"}}>
       <style>{`
-        @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-        @keyframes float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
-        @media print {
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          body { background: white !important; }
-          .meal-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd !important; margin-bottom: 16px !important; }
-          .shopping-section { break-before: page; }
-        }
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .heart-doodle{display:inline-block;color:#A855F7;font-size:0.8em;margin-left:6px;vertical-align:middle}
       `}</style>
 
-      <div className="no-print" style={{background:"#FF6B35",padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:10}}>
+      {showSignupModal && (
+        <div onClick={()=>setShowSignupModal(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div onClick={(e)=>e.stopPropagation()} style={{background:"white",borderRadius:20,padding:32,maxWidth:420,width:"100%",textAlign:"center"}}>
+            <div style={{fontSize:48,marginBottom:12}}>🚀</div>
+            <div style={{fontSize:22,fontWeight:800,color:"#14532D",marginBottom:8}}>Accounts coming soon!</div>
+            <div style={{fontSize:14,color:"#666",lineHeight:1.6,marginBottom:20}}>We're working on user accounts and Premium features. In the meantime, you can try the meal planner completely free — no sign up needed.</div>
+            <Link href="/app" style={{display:"block",padding:"14px",background:"#22C55E",color:"white",borderRadius:12,fontSize:15,fontWeight:700,textDecoration:"none"}}>Try the planner free →</Link>
+            <button onClick={()=>setShowSignupModal(false)} style={{marginTop:10,background:"none",border:"none",color:"#888",fontSize:13,cursor:"pointer"}}>maybe later</button>
+          </div>
+        </div>
+      )}
+
+      <nav style={{padding:"18px 32px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #F3F4F6",position:"sticky",top:0,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(8px)",zIndex:50}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <Logo/>
+          <Logo size={42}/>
           <div>
-            <div style={{color:"white",fontSize:18,fontWeight:800,letterSpacing:"-0.5px"}}>Seven Dinners</div>
-            <div style={{color:"#FFD4C0",fontSize:11,fontWeight:500}}>real food · no UPF · cooked from scratch</div>
+            <div style={{fontSize:18,fontWeight:800,color:"#14532D",lineHeight:1,letterSpacing:"-0.3px"}}>Seven</div>
+            <div style={{fontSize:18,fontWeight:800,color:"#22C55E",lineHeight:1,letterSpacing:"-0.3px"}}>Dinners</div>
           </div>
         </div>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          {step==="plan" && <button onClick={handlePrint} style={{background:"rgba(255,255,255,0.2)",color:"white",border:"1px solid rgba(255,255,255,0.3)",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>🖨️ Print / PDF</button>}
-          {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"rgba(255,255,255,0.15)",color:"white",border:"1px solid rgba(255,255,255,0.2)",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
+        <div style={{display:"flex",gap:32,alignItems:"center"}} className="nav-links">
+          {["How It Works","Recipes","Plans","Blog","About"].map(item=>(
+            <a key={item} href={`#${item.toLowerCase().replace(/ /g,"-")}`} style={{color:"#374151",fontSize:14,fontWeight:500,textDecoration:"none"}}>{item}</a>
+          ))}
         </div>
-      </div>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <button onClick={()=>setShowSignupModal(true)} style={{padding:"8px 20px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,cursor:"pointer"}}>Log in</button>
+          <button onClick={()=>setShowSignupModal(true)} style={{padding:"8px 20px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,cursor:"pointer"}}>Sign Up</button>
+        </div>
+      </nav>
 
-      <div className="print-only" style={{display:"none",padding:"20px 40px 10px",borderBottom:"3px solid #FF6B35"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <Logo/>
-          <div>
-            <div style={{fontSize:22,fontWeight:800,color:"#FF6B35"}}>Seven Dinners</div>
-            <div style={{fontSize:13,color:"#666"}}>Weekly meal plan · {new Date().toLocaleDateString("en-GB", {weekday:"long",year:"numeric",month:"long",day:"numeric"})}</div>
+      <section style={{padding:"60px 32px 80px",maxWidth:1280,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center",position:"relative"}}>
+        <div>
+          <h1 style={{fontSize:56,fontWeight:800,color:"#14532D",lineHeight:1.05,letterSpacing:"-1.5px",margin:0}}>
+            Healthy eating<br/>
+            <span style={{color:"#22C55E"}}>made simple</span>
+            <span className="heart-doodle">♡</span>
+          </h1>
+          <p style={{fontSize:17,color:"#4B5563",lineHeight:1.6,margin:"20px 0 28px",maxWidth:480}}>
+            AI meal planning, smart shopping lists and delicious recipes — all in one place.
+          </p>
+          <Link href="/app" style={{display:"inline-block",padding:"16px 36px",background:"#22C55E",color:"white",borderRadius:12,fontSize:16,fontWeight:700,textDecoration:"none",boxShadow:"0 8px 20px rgba(34,197,94,0.3)"}}>
+            Start Your Free Plan
+          </Link>
+          <div style={{marginTop:14,fontSize:13,color:"#6B7280",display:"flex",alignItems:"center",gap:6}}>
+            <span style={{color:"#22C55E",fontSize:16}}>✓</span>
+            No card required · Cancel anytime
           </div>
         </div>
-      </div>
 
-      <div style={{background:"linear-gradient(135deg,#FF6B35 0%,#FF8C5A 100%)",padding:"28px 24px 48px",position:"relative",overflow:"hidden"}} className="no-print">
-        <div style={{position:"absolute",top:-20,right:-30,width:140,height:140,background:"rgba(255,255,255,0.1)",borderRadius:"50%"}}/>
-        <div style={{position:"absolute",bottom:-40,left:-20,width:100,height:100,background:"rgba(255,255,255,0.08)",borderRadius:"50%"}}/>
-
-        <div style={{position:"relative",zIndex:1}}>
-          {step==="prefs" && (
-            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
-              <div style={{animation:"float 3s ease-in-out infinite"}}><BigLogo/></div>
-              <div>
-                <div style={{color:"white",fontSize:28,fontWeight:800,lineHeight:1.1,letterSpacing:"-0.8px"}}>Seven Dinners.</div>
-                <div style={{color:"#FFE4D0",fontSize:14,fontWeight:600,marginTop:2}}>Sorted in seconds.</div>
-              </div>
-            </div>
-          )}
-          {step==="plan" && (
-            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:6}}>
-              <BigLogo/>
-              <div>
-                <div style={{color:"white",fontSize:24,fontWeight:800,lineHeight:1.1,letterSpacing:"-0.5px"}}>Your seven dinners</div>
-                <div style={{color:"#FFE4D0",fontSize:14,fontWeight:600,marginTop:2}}>are ready! 🎉</div>
-              </div>
-            </div>
-          )}
-
-          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:14}}>
-            <span style={{background:"rgba(255,255,255,0.2)",color:"white",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,backdropFilter:"blur(10px)"}}>🥗 Healthy food</span>
-            <span style={{background:"rgba(255,255,255,0.2)",color:"white",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,backdropFilter:"blur(10px)"}}>👩‍🍳 Cook from scratch</span>
-            <span style={{background:"rgba(255,255,255,0.2)",color:"white",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,backdropFilter:"blur(10px)"}}>🚫 No ultra-processed food</span>
+        <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:420}}>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(circle at 60% 50%, #DCFCE7 0%, transparent 60%)"}}/>
+          <div style={{position:"relative",width:380,height:380,borderRadius:"50%",background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:"0 20px 60px rgba(34,197,94,0.15)"}}>
+            <div style={{fontSize:140,animation:"float 4s ease-in-out infinite"}}>🥗</div>
           </div>
-
-          {step==="plan" && (
-            <div style={{color:"#FFE4D0",fontSize:13,marginTop:14,lineHeight:1.5}}>
-              {prefs.adults} adult{prefs.adults!==1?"s":""} · {prefs.children} child{prefs.children!==1?"ren":""} · max {prefs.cookingTime} · {prefs.budget} budget
-            </div>
-          )}
+          <div style={{position:"absolute",top:60,left:20,background:"#FEF3C7",borderRadius:"50%",padding:"12px 18px",fontSize:13,fontWeight:700,color:"#92400E",boxShadow:"0 4px 12px rgba(0,0,0,0.08)",transform:"rotate(-8deg)"}}>
+            30 DAY<br/>
+            <span style={{fontSize:11,fontWeight:600}}>FREE TRIAL</span><br/>
+            <span style={{fontSize:10,fontWeight:600}}>ON ALL PLANS</span>
+          </div>
+          <div style={{position:"absolute",top:30,right:50,color:"#A855F7",fontSize:24}}>✨</div>
+          <div style={{position:"absolute",bottom:60,right:30,color:"#A855F7",fontSize:32}}>♡</div>
         </div>
-      </div>
+      </section>
 
-      <div style={{maxWidth:680,margin:"-20px auto 0",padding:"0 16px 48px",position:"relative",zIndex:1}}>
-
-        {step==="prefs" && !loading && (
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-
-            <div style={{background:"linear-gradient(135deg,#FFF0E8 0%,#FFE8DC 100%)",borderRadius:16,padding:"16px",border:"2px solid #FF6B35",boxShadow:"0 4px 20px rgba(255,107,53,0.15)"}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                <span style={{fontSize:24}}>📸</span>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:14,fontWeight:700,color:"#CC4400"}}>Snap your fridge or cupboard</div>
-                  <div style={{fontSize:11,color:"#883300"}}>Optional · we'll skip ingredients you already have</div>
-                </div>
-                <span style={{background:"#FF6B35",color:"white",fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100}}>NEW</span>
-              </div>
-
-              {fridgePhotos.length > 0 && (
-                <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
-                  {fridgePhotos.map((photo, idx) => (
-                    <div key={idx} style={{position:"relative",width:70,height:70,borderRadius:10,overflow:"hidden",border:"2px solid white",boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
-                      <img src={photo.preview} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                      <button onClick={()=>removePhoto(idx)} style={{position:"absolute",top:2,right:2,width:20,height:20,borderRadius:"50%",border:"none",background:"rgba(0,0,0,0.7)",color:"white",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
-                    </div>
-                  ))}
-                </div>
+      <section style={{padding:"40px 32px 80px",maxWidth:1100,margin:"0 auto"}} id="plans">
+        <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:6,letterSpacing:"-0.5px"}}>
+          Choose the plan that's right for you<span className="heart-doodle">♡</span>
+        </h2>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:20,marginTop:40}}>
+          {plans.map((plan,i)=>(
+            <div key={i} style={{background:"white",borderRadius:20,border:plan.badge==="MOST POPULAR"?"2px solid #A855F7":plan.badge==="BEST VALUE"?"2px solid #22C55E":"1px solid #E5E7EB",padding:"28px 24px",position:"relative",boxShadow:plan.badge?"0 8px 24px rgba(0,0,0,0.08)":"none"}}>
+              {plan.badge && (
+                <div style={{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",background:plan.badge==="MOST POPULAR"?"#A855F7":"#22C55E",color:"white",fontSize:11,fontWeight:800,padding:"5px 14px",borderRadius:100,letterSpacing:"0.05em"}}>{plan.badge}</div>
               )}
-
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {fridgePhotos.length < 3 && (
-                  <label style={{flex:1,minWidth:140,padding:"10px 14px",background:"white",border:"2px dashed #FF6B35",borderRadius:10,fontSize:12,color:"#FF6B35",cursor:"pointer",textAlign:"center",fontWeight:600}}>
-                    📷 {fridgePhotos.length === 0 ? "Add photos" : "Add another"}
-                    <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} style={{display:"none"}}/>
-                  </label>
-                )}
-                {fridgePhotos.length > 0 && !alreadyHave && (
-                  <button onClick={analyseFridge} disabled={analysing} style={{flex:1,minWidth:140,padding:"10px 14px",background:"#FF6B35",color:"white",border:"none",borderRadius:10,fontSize:12,cursor:"pointer",fontWeight:700,opacity:analysing?0.6:1}}>
-                    {analysing ? "🔍 Scanning..." : "✨ Scan ingredients"}
-                  </button>
-                )}
-              </div>
-
-              {alreadyHave && (
-                <div style={{marginTop:10,padding:"10px 12px",background:"white",borderRadius:10,border:"1px solid #FFD4C0"}}>
-                  <div style={{fontSize:11,fontWeight:700,color:"#CC4400",marginBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <span>✓ FOUND {ingredientsList.length} INGREDIENTS</span>
-                    <button onClick={()=>{setAlreadyHave("");setFridgePhotos([])}} style={{background:"none",border:"none",color:"#888",fontSize:11,cursor:"pointer"}}>clear</button>
-                  </div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                    {ingredientsList.slice(0,15).map((ing, i) => (
-                      <span key={i} style={{fontSize:11,padding:"2px 8px",background:"#FFF0E8",borderRadius:100,color:"#CC4400"}}>{ing}</span>
-                    ))}
-                    {ingredientsList.length > 15 && <span style={{fontSize:11,padding:"2px 8px",color:"#888"}}>+ {ingredientsList.length - 15} more</span>}
-                  </div>
-                  <div style={{fontSize:11,color:"#888",marginTop:8,lineHeight:1.4}}>These won't appear on your shopping list 🛒</div>
-                </div>
-              )}
-            </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              {["adults","children"].map((key)=>(
-                <div key={key} style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 4px 16px rgba(255,107,53,0.12)",border:"1px solid #FFE8DC"}}>
-                  <div style={{fontSize:11,color:"#FF6B35",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>{key==="adults"?"👨‍👩 Adults":"👧👦 Children"}</div>
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <button onClick={()=>setPrefs((p)=>({...p,[key]:Math.max(key==="children"?0:1,(p as any)[key]-1)}))} style={{width:32,height:32,borderRadius:"50%",border:"2px solid #FFD4C0",background:"#FFF0E8",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",color:"#FF6B35",fontWeight:700}}>−</button>
-                    <span style={{fontSize:26,fontWeight:700,color:"#333",minWidth:24,textAlign:"center"}}>{(prefs as any)[key]}</span>
-                    <button onClick={()=>setPrefs((p)=>({...p,[key]:(p as any)[key]+1}))} style={{width:32,height:32,borderRadius:"50%",border:"2px solid #FFD4C0",background:"#FFF0E8",cursor:"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",color:"#FF6B35",fontWeight:700}}>+</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 4px 16px rgba(255,107,53,0.12)",border:"1px solid #FFE8DC"}}>
-              <div style={{fontSize:11,color:"#FF6B35",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>❤️ Foods we love</div>
-              <textarea value={prefs.likes} onChange={(e)=>setPrefs((p)=>({...p,likes:e.target.value}))} rows={2} style={{width:"100%",fontSize:13,padding:"10px 12px",border:"2px solid #FFE8DC",borderRadius:10,resize:"vertical",boxSizing:"border-box",fontFamily:"inherit",color:"#333",background:"#FFFAF8",outline:"none"}}/>
-              <div style={{fontSize:11,color:"#888",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",margin:"12px 0 8px"}}>🚫 Foods to avoid</div>
-              <textarea value={prefs.dislikes} onChange={(e)=>setPrefs((p)=>({...p,dislikes:e.target.value}))} rows={2} style={{width:"100%",fontSize:13,padding:"10px 12px",border:"2px solid #FFE8DC",borderRadius:10,resize:"vertical",boxSizing:"border-box",fontFamily:"inherit",color:"#333",background:"#FFFAF8",outline:"none"}}/>
-            </div>
-
-            <div style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 4px 16px rgba(255,107,53,0.12)",border:"1px solid #FFE8DC"}}>
-              <div style={{fontSize:11,color:"#FF6B35",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>🥗 Dietary requirements</div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
-                {DIETARY_OPTIONS.map((opt)=>(
-                  <button key={opt} onClick={()=>toggleDietary(opt)} style={{padding:"6px 14px",borderRadius:100,fontSize:12,border:"2px solid",cursor:"pointer",background:prefs.dietary.includes(opt)?"#FF6B35":"white",borderColor:prefs.dietary.includes(opt)?"#FF6B35":"#FFE0CC",color:prefs.dietary.includes(opt)?"white":"#888",fontWeight:prefs.dietary.includes(opt)?700:400}}>
-                    {prefs.dietary.includes(opt)?"✓ ":""}{opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 4px 16px rgba(255,107,53,0.12)",border:"1px solid #FFE8DC"}}>
-                <div style={{fontSize:11,color:"#FF6B35",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>⏱️ Max cooking time</div>
-                <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                  {TIME_OPTIONS.map((t)=>(
-                    <button key={t} onClick={()=>setPrefs((p)=>({...p,cookingTime:t}))} style={{padding:"7px 10px",borderRadius:8,fontSize:12,border:"2px solid",cursor:"pointer",textAlign:"left",background:prefs.cookingTime===t?"#FFF0E8":"white",borderColor:prefs.cookingTime===t?"#FF6B35":"#FFE8DC",color:prefs.cookingTime===t?"#CC4400":"#666",fontWeight:prefs.cookingTime===t?700:400}}>
-                      {prefs.cookingTime===t?"✓ ":""}{t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 4px 16px rgba(255,107,53,0.12)",border:"1px solid #FFE8DC"}}>
-                <div style={{fontSize:11,color:"#FF6B35",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>💰 Budget</div>
-                <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                  {BUDGET_OPTIONS.map((b)=>(
-                    <button key={b} onClick={()=>setPrefs((p)=>({...p,budget:b}))} style={{padding:"7px 10px",borderRadius:8,fontSize:12,border:"2px solid",cursor:"pointer",textAlign:"left",background:prefs.budget===b?"#FFF0E8":"white",borderColor:prefs.budget===b?"#FF6B35":"#FFE8DC",color:prefs.budget===b?"#CC4400":"#666",fontWeight:prefs.budget===b?700:400}}>
-                      {prefs.budget===b?"✓ ":""}{b}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {error && <div style={{background:"#FFF0F0",border:"2px solid #FFB0B0",borderRadius:12,padding:"12px 16px",color:"#CC0000",fontSize:13,fontWeight:500}}>{error}</div>}
-
-            <button onClick={generatePlan} style={{width:"100%",padding:"16px",fontSize:16,fontWeight:700,background:"#FF6B35",color:"white",border:"none",borderRadius:14,cursor:"pointer",boxShadow:"0 6px 20px rgba(255,107,53,0.4)"}}>
-              Plan my seven dinners →
-            </button>
-          </div>
-        )}
-
-        {loading && (
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"60px 24px",gap:16}}>
-            <div style={{fontSize:48,animation:"bounce 1s infinite"}}>🍽️</div>
-            <div style={{position:"relative",width:48,height:48}}>
-              <div style={{position:"absolute",inset:0,border:"3px solid #FFE8DC",borderRadius:"50%"}}/>
-              <div style={{position:"absolute",inset:0,border:"3px solid transparent",borderTopColor:"#FF6B35",borderRadius:"50%",animation:"spin 0.9s linear infinite"}}/>
-            </div>
-            <p style={{color:"#FF6B35",fontSize:14,fontWeight:600,textAlign:"center",maxWidth:240,lineHeight:1.6}}>{loadingMsg}</p>
-            <p style={{color:"#FFB090",fontSize:12,textAlign:"center"}}>This takes about 30 seconds</p>
-          </div>
-        )}
-
-        {step==="plan" && !loading && mealPlan && (
-          <div>
-            <div style={{background:"white",borderRadius:16,padding:"20px",boxShadow:"0 4px 16px rgba(255,107,53,0.12)",border:"1px solid #FFE8DC"}}>
-              <div className="no-print" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:8,flexWrap:"wrap"}}>
-                <div style={{fontSize:15,fontWeight:700,color:"#333"}}>This week's seven dinners</div>
-                <div style={{display:"flex",gap:8}}>
-                  <button onClick={handlePrint} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #FF6B35",background:"#FFF0E8",color:"#FF6B35",cursor:"pointer",fontWeight:600}}>🖨️ Print / Save PDF</button>
-                  <button onClick={generatePlan} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #FFE8DC",background:"#FFF8F5",color:"#FF6B35",cursor:"pointer",fontWeight:600}}>↻ new plan</button>
-                </div>
-              </div>
-
-              <div className="no-print" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:"linear-gradient(135deg,#F0EEFF 0%,#E8E5FF 100%)",borderRadius:10,marginBottom:14,border:"1px solid #D0C8FF"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:16}}>📊</span>
-                  <div>
-                    <div style={{fontSize:12,fontWeight:700,color:"#3C3489"}}>Show macros</div>
-                    <div style={{fontSize:10,color:"#7F77DD"}}>{macrosPerPerson ? `divided by ${totalPeople} people` : "total recipe values"}</div>
-                  </div>
-                </div>
-                <div style={{display:"flex",background:"white",borderRadius:100,padding:3,border:"1px solid #D0C8FF"}}>
-                  <button onClick={()=>setMacrosPerPerson(false)} style={{padding:"4px 12px",borderRadius:100,fontSize:11,fontWeight:700,border:"none",background:!macrosPerPerson?"#534AB7":"transparent",color:!macrosPerPerson?"white":"#7F77DD",cursor:"pointer"}}>Total</button>
-                  <button onClick={()=>setMacrosPerPerson(true)} style={{padding:"4px 12px",borderRadius:100,fontSize:11,fontWeight:700,border:"none",background:macrosPerPerson?"#534AB7":"transparent",color:macrosPerPerson?"white":"#7F77DD",cursor:"pointer"}}>Per person</button>
-                </div>
-              </div>
-
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                {days.map((day, idx) => {
-                  const dayKey = Object.keys(DAY_STYLES).find(d => day.name.includes(d));
-                  const ds = dayKey ? (DAY_STYLES as any)[dayKey] : { bg:"#FF6B35", emoji:"🍽️" };
-                  const shortDay = dayKey ? (SHORT_DAYS as any)[dayKey] : day.name.slice(0,3).toUpperCase();
-                  const isDeleted = deletedDays[day.name];
-                  const isSwapping = swapping === day.name;
-                  return (
-                    <div key={idx} className="meal-card" style={{border:"1px solid #FFE8DC",borderRadius:14,overflow:"hidden",background:"white"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:"#FFF8F5",borderBottom:"1px solid #FFE8DC"}}>
-                        <div style={{background:ds.bg,color:"white",borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:700,minWidth:34,textAlign:"center"}}>{shortDay}</div>
-                        <div style={{flex:1,fontSize:14,fontWeight:600,color:"#333"}}>{day.name}</div>
-                        <div className="no-print" style={{display:"flex",gap:6}}>
-                          <button onClick={()=>swapMeal(day.name)} disabled={isSwapping} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid #FFE8DC",background:"white",color:"#FF6B35",cursor:"pointer",fontWeight:600,opacity:isSwapping?0.5:1}}>
-                            {isSwapping?"⏳":"↻"} swap
-                          </button>
-                          <select onChange={(e)=>{if(e.target.value)setDeletedDays(p=>({...p,[day.name]:e.target.value}))}} value={isDeleted||""} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid #FFE8DC",background:"white",color:"#888",cursor:"pointer"}}>
-                            <option value="">🗑️ replace</option>
-                            {REPLACE_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
-                          </select>
-                        </div>
-                      </div>
-                      {isDeleted ? (
-                        <div style={{padding:"20px",textAlign:"center"}}>
-                          <div style={{fontSize:32,marginBottom:8}}>{isDeleted.split(" ")[0]}</div>
-                          <div style={{fontSize:15,fontWeight:600,color:"#333"}}>{isDeleted}</div>
-                          <button onClick={()=>setDeletedDays(p=>{const n={...p};delete n[day.name];return n;})} className="no-print" style={{marginTop:10,fontSize:12,padding:"5px 14px",borderRadius:100,border:"1px solid #FFE8DC",background:"white",color:"#FF6B35",cursor:"pointer"}}>restore meal</button>
-                        </div>
-                      ) : (
-                        <div style={{padding:"12px 14px"}}>{renderDayLines(day.lines)}</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="shopping-section" style={{marginTop:16,background:"white",borderRadius:16,border:"1px solid #FFE8DC",overflow:"hidden",boxShadow:"0 4px 16px rgba(255,107,53,0.12)"}}>
-              <div style={{background:"#FF6B35",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+                <div style={{width:48,height:48,borderRadius:"50%",background:plan.iconBg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{plan.icon}</div>
                 <div>
-                  <div style={{color:"white",fontSize:15,fontWeight:700}}>Shopping list</div>
-                  <div style={{color:"#FFD4C0",fontSize:12,marginTop:2}}>{totalItems} items · {checkedCount} ticked off{alreadyHave?" · "+ingredientsList.length+" excluded":""}</div>
-                </div>
-                <div style={{fontSize:28}}>🛒</div>
-              </div>
-
-              <div className="no-print" style={{padding:"12px 16px",borderBottom:"1px solid #FFE8DC"}}>
-                <div style={{fontSize:11,fontWeight:700,color:"#FF6B35",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>Choose your supermarket</div>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {SUPERMARKETS.map(s=>(
-                    <button key={s.id} onClick={()=>setSelectedSupermarket(s.id)} style={{padding:"5px 12px",borderRadius:100,fontSize:12,fontWeight:600,border:"2px solid",cursor:"pointer",background:selectedSupermarket===s.id?s.color:"white",borderColor:selectedSupermarket===s.id?s.color:"#FFE8DC",color:selectedSupermarket===s.id?"white":(s as any).textColor||s.color}}>
-                      {s.name}
-                    </button>
-                  ))}
+                  <div style={{fontSize:14,fontWeight:800,color:plan.iconColor,letterSpacing:"0.05em"}}>{plan.name}</div>
+                  <div style={{fontSize:13,color:"#6B7280"}}>{plan.tagline}</div>
                 </div>
               </div>
-
-              {Object.entries(categories).map(([cat, items]) => items.length > 0 && (
-                <div key={cat}>
-                  <div style={{padding:"8px 16px",background:"#FFF8F5",borderBottom:"1px solid #FFE8DC",fontSize:12,fontWeight:700,color:"#CC4400",display:"flex",alignItems:"center",gap:6}}>
-                    <span>{(CAT_EMOJIS as any)[cat]||"🛒"}</span><span>{cat}</span>
-                  </div>
-                  {items.map((item, idx) => {
-                    const key = `${cat}-${idx}`;
-                    const isChecked = checked[key];
-                    const searchUrl = `${sm.search}${encodeURIComponent(item.name.split("(")[0].trim())}`;
-                    return (
-                      <div key={idx} style={{padding:"9px 16px",borderBottom:idx<items.length-1?"1px solid #FFF5F0":"none",display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,flex:1,minWidth:0}}>
-                          <input type="checkbox" checked={!!isChecked} onChange={()=>setChecked(p=>({...p,[key]:!p[key]}))} style={{accentColor:"#FF6B35",width:16,height:16,cursor:"pointer",flexShrink:0}}/>
-                          <span style={{fontSize:13,color:isChecked?"#ccc":"#333",textDecoration:isChecked?"line-through":"none"}}>{item.name}</span>
-                        </div>
-                        <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="no-print" style={{fontSize:11,padding:"3px 10px",background:isChecked?"#F5F5F5":sm.bg,color:isChecked?"#bbb":sm.color,borderRadius:100,textDecoration:"none",whiteSpace:"nowrap",fontWeight:600,flexShrink:0}}>
-                          {sm.name} ↗
-                        </a>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+              <div style={{marginBottom:20}}>
+                <span style={{fontSize:36,fontWeight:800,color:"#14532D"}}>{plan.price}</span>
+                <span style={{fontSize:14,color:"#6B7280",marginLeft:4}}>{plan.period}</span>
+                <div style={{fontSize:12,color:"#6B7280",marginTop:2}}>{plan.subprice}</div>
+              </div>
+              <ul style={{listStyle:"none",padding:0,margin:"0 0 24px"}}>
+                {plan.features.map((f,j)=>(
+                  <li key={j} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:10,fontSize:13,color:"#374151"}}>
+                    <span style={{color:"#22C55E",fontWeight:700,flexShrink:0,marginTop:1}}>✓</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              {plan.buttonStyle==="filled" ? (
+                <button onClick={()=>setShowSignupModal(true)} style={{width:"100%",padding:"13px",background:"#A855F7",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{plan.buttonText}</button>
+              ) : plan.buttonStyle==="outline-green" ? (
+                <button onClick={()=>setShowSignupModal(true)} style={{width:"100%",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{plan.buttonText}</button>
+              ) : (
+                <Link href="/app" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
+              )}
             </div>
+          ))}
+        </div>
 
-            <div className="no-print" style={{marginTop:12,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <button onClick={()=>setStep("prefs")} style={{padding:"13px",fontSize:13,borderRadius:12,border:"2px solid #FFE8DC",background:"white",cursor:"pointer",color:"#666",fontWeight:600}}>← edit preferences</button>
-              <button onClick={generatePlan} style={{padding:"13px",fontSize:13,fontWeight:700,borderRadius:12,border:"none",background:"#FF6B35",color:"white",cursor:"pointer",boxShadow:"0 4px 12px rgba(255,107,53,0.3)"}}>↻ regenerate</button>
+        <div style={{marginTop:32,padding:"20px 24px",background:"#F9FAFB",borderRadius:16,display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:16}}>
+          {[
+            { icon:"🔒", title:"30 day free trial", desc:"No card required" },
+            { icon:"🔄", title:"Cancel anytime", desc:"No commitments" },
+            { icon:"🛡️", title:"Your data is safe", desc:"Secure & private" },
+            { icon:"❤️", title:"Loved by thousands", desc:"4.9/5 from our community" },
+          ].map((item,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{fontSize:22}}>{item.icon}</div>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#14532D"}}>{item.title}</div>
+                <div style={{fontSize:12,color:"#6B7280"}}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{padding:"60px 32px",background:"#F9FAFB",position:"relative",overflow:"hidden"}} id="how-it-works">
+        <div style={{position:"absolute",top:0,left:0,fontSize:80,opacity:0.1}}>🍅🥦🌶️</div>
+        <div style={{position:"absolute",top:0,right:0,fontSize:80,opacity:0.1}}>🧄🌿</div>
+        <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:40,letterSpacing:"-0.5px"}}>
+          Smart tools to<br/>simplify every meal<span className="heart-doodle">♡</span>
+        </h2>
+        <div style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:24}}>
+          {features.map((f,i)=>(
+            <div key={i} style={{textAlign:"center"}}>
+              <div style={{width:80,height:80,borderRadius:"50%",background:f.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,margin:"0 auto 12px"}}>{f.icon}</div>
+              <div style={{fontSize:13,fontWeight:700,color:"#14532D"}}>{f.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{padding:"60px 32px",maxWidth:1280,margin:"0 auto"}} id="recipes">
+        <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:6,letterSpacing:"-0.5px"}}>Delicious recipes you'll love</h2>
+        <p style={{textAlign:"center",fontSize:15,color:"#6B7280",marginBottom:40}}>Hundreds of wholesome, family-friendly recipes.</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5, 1fr)",gap:16,maxWidth:1100,margin:"0 auto"}}>
+          {recipes.map((r,i)=>(
+            <div key={i} style={{background:"white",borderRadius:16,overflow:"hidden",border:"1px solid #F3F4F6",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>
+              <div style={{height:120,background:r.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:48}}>{r.emoji}</div>
+              <div style={{padding:"12px 14px"}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#14532D",marginBottom:4}}>{r.name}</div>
+                <div style={{fontSize:11,color:"#6B7280"}}>{r.time}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{textAlign:"center",marginTop:24}}>
+          <Link href="/app" style={{color:"#22C55E",fontSize:14,fontWeight:700,textDecoration:"none"}}>Explore all recipes →</Link>
+        </div>
+      </section>
+
+      <section style={{padding:"60px 32px",background:"#FAF5FF",maxWidth:1280,margin:"0 auto",borderRadius:24}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center",maxWidth:1100,margin:"0 auto"}}>
+          <div style={{position:"relative",height:280,borderRadius:20,background:"linear-gradient(135deg,#FEF3C7 0%,#FED7AA 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <div style={{fontSize:120}}>👨‍👩‍👧</div>
+          </div>
+          <div>
+            <h2 style={{fontSize:30,fontWeight:800,color:"#14532D",lineHeight:1.2,marginBottom:16,letterSpacing:"-0.5px"}}>
+              Join thousands of<br/>happy home cooks<span className="heart-doodle">♡</span>
+            </h2>
+            <p style={{fontSize:15,color:"#4B5563",lineHeight:1.6,fontStyle:"italic",marginBottom:16}}>
+              "Seven Dinners has completely changed the way I plan meals. It saves me so much time and we eat so much healthier!"
+            </p>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{display:"flex",gap:2}}>
+                {[1,2,3,4,5].map(s=>(<span key={s} style={{color:"#FBBF24",fontSize:16}}>★</span>))}
+              </div>
+              <span style={{fontSize:15,fontWeight:700,color:"#14532D"}}>4.9/5</span>
+              <span style={{fontSize:13,color:"#6B7280"}}>— Sarah, Seven Dinners member</span>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
+
+      <section style={{padding:"40px 32px",borderTop:"1px solid #F3F4F6",borderBottom:"1px solid #F3F4F6"}}>
+        <div style={{textAlign:"center",fontSize:15,fontWeight:600,color:"#6B7280",marginBottom:24}}>We integrate with your favourite supermarkets</div>
+        <div style={{display:"flex",justifyContent:"center",gap:40,flexWrap:"wrap",alignItems:"center"}}>
+          {supermarkets.map(s=>(
+            <div key={s.name} style={{fontSize:18,fontWeight:800,color:s.color,letterSpacing:"-0.3px"}}>{s.name}</div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{padding:"60px 32px",maxWidth:1280,margin:"0 auto",position:"relative",overflow:"hidden"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:40,padding:"40px",background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",borderRadius:24}}>
+          <div style={{fontSize:80}}>🥑</div>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:22,fontWeight:700,color:"#14532D",lineHeight:1.4}}>
+              Good for you.<br/>
+              Good for your family.<br/>
+              <span style={{color:"#22C55E"}}>Good for the planet.</span>
+            </div>
+          </div>
+          <div style={{fontSize:80}}>🥦</div>
+        </div>
+      </section>
+
+      <footer style={{padding:"40px 32px",background:"#14532D",color:"white",textAlign:"center"}}>
+        <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:10,marginBottom:12}}>
+          <Logo size={32}/>
+          <div style={{fontSize:18,fontWeight:800}}>Seven Dinners</div>
+        </div>
+        <div style={{fontSize:13,opacity:0.8}}>Healthy eating made simple · real food · no UPF · cooked from scratch</div>
+        <div style={{fontSize:12,opacity:0.6,marginTop:20}}>© 2026 Seven Dinners · All rights reserved</div>
+      </footer>
     </div>
   );
 }
