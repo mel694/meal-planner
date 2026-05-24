@@ -31,7 +31,7 @@ export default function SevenDinners() {
     adults: 2, children: 2,
     likes: "chicken, salmon, beef, pasta, roasted vegetables",
     dislikes: "pork, blue cheese, very spicy food",
-    dietary: [], cookingTime: "45 mins", budget: "Medium",
+    dietary: []as string[], cookingTime: "45 mins", budget: "Medium",
   });
 
   const toggleDietary = (opt: string) =>
