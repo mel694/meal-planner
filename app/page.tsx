@@ -29,6 +29,36 @@ const CAT_EMOJIS = { "Meat & Fish":"🥩", "Fruit & Veg":"🥦", "Dairy & Eggs":
 
 type FridgePhoto = { data: string; mediaType: string; preview: string };
 
+const Logo = () => (
+  <svg width="44" height="44" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="30" r="28" fill="white"/>
+    <circle cx="30" cy="30" r="22" fill="#FFF0E8"/>
+    <path d="M30 12 Q35 15 36 20 Q35 18 30 18 Q25 18 24 20 Q25 15 30 12 Z" fill="#4CAF7D"/>
+    <ellipse cx="30" cy="32" rx="14" ry="11" fill="#FF6B35"/>
+    <ellipse cx="30" cy="30" rx="14" ry="11" fill="#FFB347"/>
+    <circle cx="24" cy="29" r="1.8" fill="#FF6B35"/>
+    <circle cx="33" cy="27" r="1.5" fill="#EC4899"/>
+    <circle cx="36" cy="33" r="1.6" fill="#8B5CF6"/>
+    <circle cx="27" cy="34" r="1.4" fill="#4CAF7D"/>
+    <text x="30" y="48" textAnchor="middle" fontSize="9" fontWeight="800" fill="#CC4400" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif">7</text>
+  </svg>
+);
+
+const BigLogo = () => (
+  <svg width="80" height="80" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style={{filter:"drop-shadow(0 6px 16px rgba(0,0,0,0.15))"}}>
+    <circle cx="30" cy="30" r="28" fill="white"/>
+    <circle cx="30" cy="30" r="22" fill="#FFF0E8"/>
+    <path d="M30 12 Q35 15 36 20 Q35 18 30 18 Q25 18 24 20 Q25 15 30 12 Z" fill="#4CAF7D"/>
+    <ellipse cx="30" cy="32" rx="14" ry="11" fill="#FF6B35"/>
+    <ellipse cx="30" cy="30" rx="14" ry="11" fill="#FFB347"/>
+    <circle cx="24" cy="29" r="1.8" fill="#FF6B35"/>
+    <circle cx="33" cy="27" r="1.5" fill="#EC4899"/>
+    <circle cx="36" cy="33" r="1.6" fill="#8B5CF6"/>
+    <circle cx="27" cy="34" r="1.4" fill="#4CAF7D"/>
+    <text x="30" y="48" textAnchor="middle" fontSize="9" fontWeight="800" fill="#CC4400" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif">7</text>
+  </svg>
+);
+
 export default function SevenDinners() {
   const [step, setStep] = useState("prefs");
   const [loading, setLoading] = useState(false);
@@ -39,6 +69,7 @@ export default function SevenDinners() {
   const [selectedSupermarket, setSelectedSupermarket] = useState("sainsburys");
   const [deletedDays, setDeletedDays] = useState<Record<string,string>>({});
   const [swapping, setSwapping] = useState<string|null>(null);
+  const [macrosPerPerson, setMacrosPerPerson] = useState(false);
 
   const [fridgePhotos, setFridgePhotos] = useState<FridgePhoto[]>([]);
   const [alreadyHave, setAlreadyHave] = useState("");
@@ -52,6 +83,7 @@ export default function SevenDinners() {
   });
 
   const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
+  const totalPeople = prefs.adults + prefs.children;
 
   const toggleDietary = (opt: string) =>
     setPrefs((p) => ({ ...p, dietary: p.dietary.includes(opt) ? p.dietary.filter((x) => x !== opt) : [...p.dietary, opt] }));
@@ -59,7 +91,6 @@ export default function SevenDinners() {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-
     for (const file of files) {
       if (fridgePhotos.length >= 3) break;
       const reader = new FileReader();
@@ -183,15 +214,22 @@ export default function SevenDinners() {
         if (currentCat) categories[currentCat].push({ name: parts[0] });
       }
     });
-
     return { days, categories };
+  };
+
+  const formatMacroValue = (macroStr: string, divideBy: number) => {
+    // macroStr like "Calories: 450cal" or "Protein: 35g"
+    const match = macroStr.match(/^([^:]+):\s*(\d+(?:\.\d+)?)(.*)$/);
+    if (!match) return macroStr;
+    const [, label, num, unit] = match;
+    const value = Math.round(parseFloat(num) / divideBy);
+    return `${label.trim()}: ${value}${unit.trim()}`;
   };
 
   const renderDayLines = (lines: string[]) => {
     const result: React.ReactNode[] = [];
     let olBuffer: React.ReactNode[] = [];
     let olKey = 0;
-
     const flushOl = () => {
       if (olBuffer.length > 0) { result.push(<ol key={`ol-${olKey++}`} style={{padding:"0 0 0 20px",margin:"4px 0 8px"}}>{olBuffer}</ol>); olBuffer = []; }
     };
@@ -205,10 +243,16 @@ export default function SevenDinners() {
         result.push(<div key={i} style={{fontSize:12,fontWeight:700,color:"#FF6B35",margin:"10px 0 4px",textTransform:"uppercase",letterSpacing:"0.04em"}}>{line.replace(/\*\*/g,"")}</div>);
       } else if (line.includes("Calories:") || line.includes("Protein:") || line.includes("Carbs:") || line.includes("Fat:")) {
         flushOl();
-        const macros = line.split("|").map(s => s.trim()).filter(Boolean);
+        let macros = line.split("|").map(s => s.trim()).filter(Boolean);
+        if (macrosPerPerson && totalPeople > 0) {
+          macros = macros.map(m => formatMacroValue(m, totalPeople));
+        }
         result.push(
-          <div key={i} style={{display:"flex",flexWrap:"wrap",gap:6,margin:"8px 0"}}>
+          <div key={i} style={{display:"flex",flexWrap:"wrap",gap:6,margin:"8px 0",alignItems:"center"}}>
             {macros.map((m,j) => <span key={j} style={{fontSize:11,padding:"3px 10px",background:"#F0EEFF",border:"1px solid #D0C8FF",borderRadius:100,color:"#5040A0",fontWeight:600}}>{m}</span>)}
+            <span style={{fontSize:10,color:"#888",fontWeight:500,marginLeft:4}}>
+              {macrosPerPerson ? `per person (÷${totalPeople})` : "total recipe"}
+            </span>
           </div>
         );
       } else if (line.includes("|") && !line.startsWith("-") && !line.startsWith("#")) {
@@ -246,6 +290,7 @@ export default function SevenDinners() {
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+        @keyframes float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
         @media print {
           .no-print { display: none !important; }
           .print-only { display: block !important; }
@@ -257,10 +302,10 @@ export default function SevenDinners() {
 
       <div className="no-print" style={{background:"#FF6B35",padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:38,height:38,background:"white",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🍽️</div>
+          <Logo/>
           <div>
-            <div style={{color:"white",fontSize:17,fontWeight:700,letterSpacing:"-0.3px"}}>Seven Dinners</div>
-            <div style={{color:"#FFD4C0",fontSize:11}}>your family's weekly menu</div>
+            <div style={{color:"white",fontSize:18,fontWeight:800,letterSpacing:"-0.5px"}}>Seven Dinners</div>
+            <div style={{color:"#FFD4C0",fontSize:11,fontWeight:500}}>real food · no UPF · cooked from scratch</div>
           </div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -271,21 +316,49 @@ export default function SevenDinners() {
 
       <div className="print-only" style={{display:"none",padding:"20px 40px 10px",borderBottom:"3px solid #FF6B35"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:28}}>🍽️</span>
+          <Logo/>
           <div>
-            <div style={{fontSize:22,fontWeight:700,color:"#FF6B35"}}>Seven Dinners</div>
+            <div style={{fontSize:22,fontWeight:800,color:"#FF6B35"}}>Seven Dinners</div>
             <div style={{fontSize:13,color:"#666"}}>Weekly meal plan · {new Date().toLocaleDateString("en-GB", {weekday:"long",year:"numeric",month:"long",day:"numeric"})}</div>
           </div>
         </div>
       </div>
 
-      <div style={{background:"#FF6B35",padding:"24px 24px 44px"}} className="no-print">
-        <div style={{display:"inline-block",background:"rgba(255,255,255,0.2)",color:"white",fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:100,marginBottom:10,letterSpacing:"0.05em"}}>POWERED BY AI</div>
-        <div style={{color:"white",fontSize:26,fontWeight:700,lineHeight:1.2,marginBottom:8,letterSpacing:"-0.5px"}}>
-          {step==="prefs" ? "Seven dinners.\nSorted in seconds." : "Your seven dinners\nare ready! 🎉"}
-        </div>
-        <div style={{color:"#FFD4C0",fontSize:13,lineHeight:1.6}}>
-          {step==="prefs" ? "Tell us what your family loves. We'll plan a full week of wholesome, delicious dinners." : `Planned for ${prefs.adults} adult${prefs.adults!==1?"s":""} & ${prefs.children} child${prefs.children!==1?"ren":""} · max ${prefs.cookingTime} · ${prefs.budget} budget`}
+      <div style={{background:"linear-gradient(135deg,#FF6B35 0%,#FF8C5A 100%)",padding:"28px 24px 48px",position:"relative",overflow:"hidden"}} className="no-print">
+        <div style={{position:"absolute",top:-20,right:-30,width:140,height:140,background:"rgba(255,255,255,0.1)",borderRadius:"50%"}}/>
+        <div style={{position:"absolute",bottom:-40,left:-20,width:100,height:100,background:"rgba(255,255,255,0.08)",borderRadius:"50%"}}/>
+
+        <div style={{position:"relative",zIndex:1}}>
+          {step==="prefs" && (
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
+              <div style={{animation:"float 3s ease-in-out infinite"}}><BigLogo/></div>
+              <div>
+                <div style={{color:"white",fontSize:28,fontWeight:800,lineHeight:1.1,letterSpacing:"-0.8px"}}>Seven Dinners.</div>
+                <div style={{color:"#FFE4D0",fontSize:14,fontWeight:600,marginTop:2}}>Sorted in seconds.</div>
+              </div>
+            </div>
+          )}
+          {step==="plan" && (
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:6}}>
+              <BigLogo/>
+              <div>
+                <div style={{color:"white",fontSize:24,fontWeight:800,lineHeight:1.1,letterSpacing:"-0.5px"}}>Your seven dinners</div>
+                <div style={{color:"#FFE4D0",fontSize:14,fontWeight:600,marginTop:2}}>are ready! 🎉</div>
+              </div>
+            </div>
+          )}
+
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:14}}>
+            <span style={{background:"rgba(255,255,255,0.2)",color:"white",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,backdropFilter:"blur(10px)"}}>🥗 Healthy food</span>
+            <span style={{background:"rgba(255,255,255,0.2)",color:"white",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,backdropFilter:"blur(10px)"}}>👩‍🍳 Cook from scratch</span>
+            <span style={{background:"rgba(255,255,255,0.2)",color:"white",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,backdropFilter:"blur(10px)"}}>🚫 No ultra-processed food</span>
+          </div>
+
+          {step==="plan" && (
+            <div style={{color:"#FFE4D0",fontSize:13,marginTop:14,lineHeight:1.5}}>
+              {prefs.adults} adult{prefs.adults!==1?"s":""} · {prefs.children} child{prefs.children!==1?"ren":""} · max {prefs.cookingTime} · {prefs.budget} budget
+            </div>
+          )}
         </div>
       </div>
 
@@ -423,11 +496,25 @@ export default function SevenDinners() {
         {step==="plan" && !loading && mealPlan && (
           <div>
             <div style={{background:"white",borderRadius:16,padding:"20px",boxShadow:"0 4px 16px rgba(255,107,53,0.12)",border:"1px solid #FFE8DC"}}>
-              <div className="no-print" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,gap:8,flexWrap:"wrap"}}>
+              <div className="no-print" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:8,flexWrap:"wrap"}}>
                 <div style={{fontSize:15,fontWeight:700,color:"#333"}}>This week's seven dinners</div>
                 <div style={{display:"flex",gap:8}}>
                   <button onClick={handlePrint} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #FF6B35",background:"#FFF0E8",color:"#FF6B35",cursor:"pointer",fontWeight:600}}>🖨️ Print / Save PDF</button>
                   <button onClick={generatePlan} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #FFE8DC",background:"#FFF8F5",color:"#FF6B35",cursor:"pointer",fontWeight:600}}>↻ new plan</button>
+                </div>
+              </div>
+
+              <div className="no-print" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:"linear-gradient(135deg,#F0EEFF 0%,#E8E5FF 100%)",borderRadius:10,marginBottom:14,border:"1px solid #D0C8FF"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:16}}>📊</span>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#3C3489"}}>Show macros</div>
+                    <div style={{fontSize:10,color:"#7F77DD"}}>{macrosPerPerson ? `divided by ${totalPeople} people` : "total recipe values"}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",background:"white",borderRadius:100,padding:3,border:"1px solid #D0C8FF"}}>
+                  <button onClick={()=>setMacrosPerPerson(false)} style={{padding:"4px 12px",borderRadius:100,fontSize:11,fontWeight:700,border:"none",background:!macrosPerPerson?"#534AB7":"transparent",color:!macrosPerPerson?"white":"#7F77DD",cursor:"pointer"}}>Total</button>
+                  <button onClick={()=>setMacrosPerPerson(true)} style={{padding:"4px 12px",borderRadius:100,fontSize:11,fontWeight:700,border:"none",background:macrosPerPerson?"#534AB7":"transparent",color:macrosPerPerson?"white":"#7F77DD",cursor:"pointer"}}>Per person</button>
                 </div>
               </div>
 
