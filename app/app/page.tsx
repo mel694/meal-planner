@@ -296,7 +296,9 @@ export default function PlannerApp() {
     }
   };
 
-  const generatePlan = () => generatePlanWithScheduled(); = async (dayName: string, style?: string, protein?: string) => {
+  const generatePlan = () => generatePlanWithScheduled();
+
+  const swapMeal = async (dayName: string, style?: string, protein?: string) => {
     setSwapping(dayName);
     setSwapMenuDay(null);
     try {
