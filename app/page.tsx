@@ -142,18 +142,6 @@ export default function Home() {
         }
       `}</style>
 
-      {showSignupModal && (
-        <div onClick={()=>setShowSignupModal(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          <div onClick={(e)=>e.stopPropagation()} style={{background:"white",borderRadius:20,padding:32,maxWidth:420,width:"100%",textAlign:"center"}}>
-            <div style={{fontSize:48,marginBottom:12}}>🚀</div>
-            <div style={{fontSize:22,fontWeight:800,color:"#14532D",marginBottom:8}}>Accounts coming soon!</div>
-            <div style={{fontSize:14,color:"#666",lineHeight:1.6,marginBottom:20}}>We're working on user accounts and Premium features. In the meantime, you can try the meal planner completely free — no sign up needed.</div>
-            <Link href="/app" style={{display:"block",padding:"14px",background:"#22C55E",color:"white",borderRadius:12,fontSize:15,fontWeight:700,textDecoration:"none"}}>Try the planner free →</Link>
-            <button onClick={()=>setShowSignupModal(false)} style={{marginTop:10,background:"none",border:"none",color:"#888",fontSize:13,cursor:"pointer"}}>maybe later</button>
-          </div>
-        </div>
-      )}
-
       <nav style={{padding:"18px 32px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #F3F4F6",position:"sticky",top:0,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(8px)",zIndex:50}} className="nav-pad">
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <Logo size={42}/>
