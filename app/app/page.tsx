@@ -339,6 +339,15 @@ export default function PlannerApp() {
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
         @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+        *{box-sizing:border-box}
+        @media(max-width:640px){
+          .swap-popup{position:fixed!important;bottom:0!important;left:0!important;right:0!important;top:auto!important;border-radius:20px 20px 0 0!important;min-width:unset!important;width:100%!important;padding:20px!important}
+          .meal-actions{flex-wrap:wrap!important;gap:4px!important}
+          .meal-actions button, .meal-actions select{font-size:10px!important;padding:3px 7px!important}
+          .two-col{grid-template-columns:1fr!important}
+          .nav-buttons{gap:4px!important}
+          .nav-buttons button{padding:6px 8px!important;font-size:11px!important}
+        }
         @media print {
           .no-print { display: none !important; }
           .print-only { display: block !important; }
@@ -362,7 +371,7 @@ export default function PlannerApp() {
             <div style={{fontSize:16,fontWeight:800,color:"#22C55E",lineHeight:1,letterSpacing:"-0.3px"}}>Dinners</div>
           </div>
         </Link>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        <div style={{display:"flex",gap:8,alignItems:"center"}} className="nav-buttons">
           <button onClick={()=>setShowFavourites(!showFavourites)} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>
             ⭐ Favourites {favourites.length > 0 && <span style={{background:"#22C55E",color:"white",fontSize:10,fontWeight:700,padding:"1px 6px",borderRadius:100,marginLeft:4}}>{favourites.length}</span>}
           </button>
@@ -545,7 +554,7 @@ export default function PlannerApp() {
               )}
             </div>
 
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div className="two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               {["adults","children"].map((key)=>(
                 <div key={key} style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #E5E7EB"}}>
                   <div style={{fontSize:11,color:"#22C55E",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>{key==="adults"?"👨‍👩 Adults":"👧👦 Children"}</div>
@@ -588,7 +597,7 @@ export default function PlannerApp() {
               </div>
             </div>
 
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div className="two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               <div style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #E5E7EB"}}>
                 <div style={{fontSize:11,color:"#22C55E",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>⏱️ Max time</div>
                 <div style={{display:"flex",flexDirection:"column",gap:5}}>
@@ -670,7 +679,7 @@ export default function PlannerApp() {
                       <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:"#F9FAFB",borderBottom:"1px solid #E5E7EB"}}>
                         <div style={{background:ds.bg,color:"white",borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:700,minWidth:34,textAlign:"center"}}>{shortDay}</div>
                         <div style={{flex:1,fontSize:14,fontWeight:600,color:"#14532D"}}>{day.name}</div>
-                        <div className="no-print" style={{display:"flex",gap:6}}>
+                        <div className="no-print meal-actions" style={{display:"flex",gap:6}}>
                           <button onClick={()=>saveFavourite(day.name, day.lines)} disabled={isFavourited} title={isFavourited?"Already saved":"Save to favourites"} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid #E5E7EB",background:isFavourited?"#F0FDF4":"white",color:isFavourited?"#22C55E":"#888",cursor:isFavourited?"default":"pointer",fontWeight:600}}>
                             {isFavourited?"⭐":"☆"} {isFavourited?"saved":"save"}
                           </button>
@@ -679,7 +688,7 @@ export default function PlannerApp() {
                               {isSwapping?"⏳ swapping...":"↻ swap ▾"}
                             </button>
                             {swapMenuDay===day.name && (
-                              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"white",border:"1px solid #E5E7EB",borderRadius:14,padding:14,zIndex:50,minWidth:220,boxShadow:"0 8px 24px rgba(0,0,0,0.12)"}}>
+                              <div className="swap-popup" style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"white",border:"1px solid #E5E7EB",borderRadius:14,padding:14,zIndex:50,minWidth:220,boxShadow:"0 8px 24px rgba(0,0,0,0.12)"}}>
                                 <div style={{fontSize:11,fontWeight:700,color:"#14532D",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>🍳 Cooking style</div>
                                 <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:12}}>
                                   {[["any","🍳 Any"],["slowcooker","🍲 Slow cooker"],["airfryer","♨️ Air fryer"],["onepot","🥘 One pot"]].map(([val,label])=>(

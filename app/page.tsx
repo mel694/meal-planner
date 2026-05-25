@@ -125,6 +125,23 @@ export default function Home() {
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         .heart-doodle{display:inline-block;color:#A855F7;font-size:0.8em;margin-left:6px;vertical-align:middle}
+        *{box-sizing:border-box}
+        @media(max-width:768px){
+          .nav-links{display:none!important}
+          .hero-grid{grid-template-columns:1fr!important}
+          .hero-image{display:none!important}
+          .hero-text h1{font-size:36px!important}
+          .plans-grid{grid-template-columns:1fr!important}
+          .features-grid{grid-template-columns:1fr 1fr!important}
+          .recipes-grid{grid-template-columns:1fr 1fr!important}
+          .testimonial-grid{grid-template-columns:1fr!important}
+          .trust-grid{grid-template-columns:1fr 1fr!important}
+          .supermarkets-row{gap:20px!important}
+          .closing-row{flex-direction:column!important;gap:16px!important;text-align:center!important}
+          .nav-pad{padding:14px 16px!important}
+          .hero-pad{padding:32px 16px 48px!important}
+          .section-pad{padding:40px 16px!important}
+        }
       `}</style>
 
       {showSignupModal && (
@@ -139,7 +156,7 @@ export default function Home() {
         </div>
       )}
 
-      <nav style={{padding:"18px 32px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #F3F4F6",position:"sticky",top:0,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(8px)",zIndex:50}}>
+      <nav style={{padding:"18px 32px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #F3F4F6",position:"sticky",top:0,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(8px)",zIndex:50}} className="nav-pad">
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <Logo size={42}/>
           <div>
@@ -158,8 +175,8 @@ export default function Home() {
         </div>
       </nav>
 
-      <section style={{padding:"60px 32px 80px",maxWidth:1280,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center",position:"relative"}}>
-        <div>
+      <section style={{padding:"60px 32px 80px",maxWidth:1280,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center",position:"relative"}} className="hero-grid hero-pad">
+        <div className="hero-text">
           <h1 style={{fontSize:56,fontWeight:800,color:"#14532D",lineHeight:1.05,letterSpacing:"-1.5px",margin:0}}>
             Healthy eating<br/>
             <span style={{color:"#22C55E"}}>made simple</span>
@@ -177,7 +194,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:420}}>
+        <div className="hero-image" style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:420}}>
           <div style={{position:"absolute",inset:0,background:"radial-gradient(circle at 60% 50%, #DCFCE7 0%, transparent 60%)"}}/>
           <div style={{position:"relative",width:380,height:380,borderRadius:"50%",background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:"0 20px 60px rgba(34,197,94,0.15)"}}>
             <div style={{fontSize:140,animation:"float 4s ease-in-out infinite"}}>🥗</div>
@@ -196,7 +213,7 @@ export default function Home() {
         <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:6,letterSpacing:"-0.5px"}}>
           Choose the plan that's right for you<span className="heart-doodle">♡</span>
         </h2>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:20,marginTop:40}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:20,marginTop:40}} className="plans-grid">
           {plans.map((plan,i)=>(
             <div key={i} style={{background:"white",borderRadius:20,border:plan.badge==="MOST POPULAR"?"2px solid #A855F7":plan.badge==="BEST VALUE"?"2px solid #22C55E":"1px solid #E5E7EB",padding:"28px 24px",position:"relative",boxShadow:plan.badge?"0 8px 24px rgba(0,0,0,0.08)":"none"}}>
               {plan.badge && (
@@ -233,7 +250,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div style={{marginTop:32,padding:"20px 24px",background:"#F9FAFB",borderRadius:16,display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:16}}>
+        <div style={{marginTop:32,padding:"20px 24px",background:"#F9FAFB",borderRadius:16,display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:16}} className="trust-grid">
           {[
             { icon:"🔒", title:"30 day free trial", desc:"No card required" },
             { icon:"🔄", title:"Cancel anytime", desc:"No commitments" },
@@ -257,7 +274,7 @@ export default function Home() {
         <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:40,letterSpacing:"-0.5px"}}>
           Smart tools to<br/>simplify every meal<span className="heart-doodle">♡</span>
         </h2>
-        <div style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:24}}>
+        <div style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:24}} className="features-grid">
           {features.map((f,i)=>(
             <div key={i} style={{textAlign:"center"}}>
               <div style={{width:80,height:80,borderRadius:"50%",background:f.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,margin:"0 auto 12px"}}>{f.icon}</div>
@@ -270,7 +287,7 @@ export default function Home() {
       <section style={{padding:"60px 32px",maxWidth:1280,margin:"0 auto"}} id="recipes">
         <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:6,letterSpacing:"-0.5px"}}>Delicious recipes you'll love</h2>
         <p style={{textAlign:"center",fontSize:15,color:"#6B7280",marginBottom:40}}>Hundreds of wholesome, family-friendly recipes.</p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5, 1fr)",gap:16,maxWidth:1100,margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5, 1fr)",gap:16,maxWidth:1100,margin:"0 auto"}} className="recipes-grid">
           {recipes.map((r,i)=>(
             <div key={i} style={{background:"white",borderRadius:16,overflow:"hidden",border:"1px solid #F3F4F6",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>
               <div style={{height:120,background:r.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:48}}>{r.emoji}</div>
@@ -287,7 +304,7 @@ export default function Home() {
       </section>
 
       <section style={{padding:"60px 32px",background:"#FAF5FF",maxWidth:1280,margin:"0 auto",borderRadius:24}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center",maxWidth:1100,margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center",maxWidth:1100,margin:"0 auto"}} className="testimonial-grid">
           <div style={{position:"relative",height:280,borderRadius:20,background:"linear-gradient(135deg,#FEF3C7 0%,#FED7AA 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
             <div style={{fontSize:120}}>👨‍👩‍👧</div>
           </div>
@@ -311,7 +328,7 @@ export default function Home() {
 
       <section style={{padding:"40px 32px",borderTop:"1px solid #F3F4F6",borderBottom:"1px solid #F3F4F6"}}>
         <div style={{textAlign:"center",fontSize:15,fontWeight:600,color:"#6B7280",marginBottom:24}}>We integrate with your favourite supermarkets</div>
-        <div style={{display:"flex",justifyContent:"center",gap:40,flexWrap:"wrap",alignItems:"center"}}>
+        <div style={{display:"flex",justifyContent:"center",gap:40,flexWrap:"wrap",alignItems:"center"}} className="supermarkets-row">
           {supermarkets.map(s=>(
             <div key={s.name} style={{fontSize:18,fontWeight:800,color:s.color,letterSpacing:"-0.3px"}}>{s.name}</div>
           ))}
@@ -319,7 +336,7 @@ export default function Home() {
       </section>
 
       <section style={{padding:"60px 32px",maxWidth:1280,margin:"0 auto",position:"relative",overflow:"hidden"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:40,padding:"40px",background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",borderRadius:24}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:40,padding:"40px",background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",borderRadius:24}} className="closing-row">
           <div style={{fontSize:80}}>🥑</div>
           <div style={{textAlign:"center"}}>
             <div style={{fontSize:22,fontWeight:700,color:"#14532D",lineHeight:1.4}}>
