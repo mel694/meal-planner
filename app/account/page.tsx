@@ -2,7 +2,7 @@
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../lib/supabase";
 
 const Logo = () => (
   <svg width="36" height="36" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
