@@ -166,52 +166,48 @@ export default function PlannerApp() {
     if (files.length === 0) return;
     for (const file of files) {
       if (fridgePhotos.length >= 3) break;
-      await new Promise<void>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const result = reader.result as string;
-          const isHeic = file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().endsWith(".heic") || file.name.toLowerCase().endsWith(".heif");
-          if (isHeic) {
-            // Convert HEIC to JPEG via canvas
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.createElement("canvas");
-              canvas.width = img.naturalWidth;
-              canvas.height = img.naturalHeight;
-              const ctx = canvas.getContext("2d");
-              if (ctx) {
-                ctx.drawImage(img, 0, 0);
-                const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-                setFridgePhotos(prev => [...prev, {
-                  data: jpegDataUrl.split(",")[1],
-                  mediaType: "image/jpeg",
-                  preview: jpegDataUrl,
-                }]);
-              }
-              resolve();
-            };
-            img.onerror = () => {
-              // Canvas HEIC fallback failed — try sending as-is and let the API handle it
-              setFridgePhotos(prev => [...prev, {
-                data: result.split(",")[1],
-                mediaType: "image/jpeg",
-                preview: result,
-              }]);
-              resolve();
-            };
-            img.src = result;
-          } else {
-            // Standard image — use as-is
-            setFridgePhotos(prev => [...prev, {
-              data: result.split(",")[1],
-              mediaType: file.type || "image/jpeg",
-              preview: result,
-            }]);
-            resolve();
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+      const isHeic = file.type === "image/heic" || file.type === "image/heif"
+        || file.name.toLowerCase().endsWith(".heic")
+        || file.name.toLowerCase().endsWith(".heif");
+      try {
+        let dataUrl: string;
+        let mediaType = file.type || "image/jpeg";
+        if (isHeic) {
+          // Dynamically import heic2any for HEIC conversion
+          const heic2any = (await import("heic2any")).default;
+          const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 }) as Blob;
+          dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          mediaType = "image/jpeg";
+        } else {
+          dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+        }
+        setFridgePhotos(prev => [...prev, {
+          data: dataUrl.split(",")[1],
+          mediaType,
+          preview: dataUrl,
+        }]);
+      } catch (err) {
+        console.error("Photo conversion error:", err);
+        // Fallback: try to read as-is
+        const dataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        setFridgePhotos(prev => [...prev, {
+          data: dataUrl.split(",")[1],
+          mediaType: "image/jpeg",
+          preview: dataUrl,
+        }]);
+      }
     }
     e.target.value = "";
   };
@@ -249,36 +245,39 @@ export default function PlannerApp() {
 
   const addFridgeRecipeToPlanner = (day: string) => {
     if (!fridgeRecipe || !day) return;
-    // Extract meal name from recipe (first line after ##)
     const lines = fridgeRecipe.split("\n");
     const nameLine = lines.find(l => l.startsWith("## "));
     const mealName = nameLine ? nameLine.replace("## ","").trim() : "Fridge Recipe";
-    // Save as a favourite
     const id = `fav-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-    const content = `## ${day}\n${fridgeRecipe.replace(/^## .+\n/, "")}`;
+    const content = `## ${day}\n${fridgeRecipe.replace(/^## .+\n?/, "")}`;
     const newFav: Favourite = { id, name: mealName, content, savedAt: Date.now() };
-    setFavourites(prev => {
-      const exists = prev.some(f => f.name === mealName);
-      return exists ? prev : [newFav, ...prev];
-    });
-    // Schedule it for that day
-    setScheduled(prev => ({ ...prev, [day]: id }));
+    // Update both state and persist immediately
+    const newFavourites = [...favourites.filter(f => f.name !== mealName), newFav];
+    const newScheduled = { ...scheduled, [day]: id };
+    setFavourites(newFavourites);
+    setScheduled(newScheduled);
+    // Persist to localStorage immediately so generatePlan can read it
+    try {
+      localStorage.setItem("sevendinners_favourites", JSON.stringify(newFavourites));
+      localStorage.setItem("sevendinners_scheduled", JSON.stringify(newScheduled));
+    } catch (e) {}
     setFridgeRecipeDay(day);
     setFridgeRecipeAdded(true);
     showToast(`📅 "${mealName}" added to ${day}!`);
   };
 
-  const generatePlan = async () => {
+  const generatePlanWithScheduled = async (overrideScheduled?: Scheduled, overrideFavourites?: Favourite[]) => {
+    const useFavourites = overrideFavourites || favourites;
+    const useScheduled = overrideScheduled || scheduled;
     setLoading(true); setError(""); setMealPlan(""); setChecked({}); setDeletedDays({});
     const msgs = ["Loading your scheduled meals...","Finding new recipes for the rest...","Matching to your family's tastes...","Building your seven dinners..."];
     let i = 0; setLoadingMsg(msgs[0]);
     const interval = setInterval(() => { i=(i+1)%msgs.length; setLoadingMsg(msgs[i]); }, 3000);
     try {
-      const scheduledMeals = Object.entries(scheduled).map(([day, favId]) => {
-        const fav = favourites.find(f => f.id === favId);
+      const scheduledMeals = Object.entries(useScheduled).map(([day, favId]) => {
+        const fav = useFavourites.find(f => f.id === favId);
         return fav ? { day, content: fav.content } : null;
       }).filter(Boolean);
-
       const res = await fetch("/api/mealplan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -297,7 +296,7 @@ export default function PlannerApp() {
     }
   };
 
-  const swapMeal = async (dayName: string, style?: string, protein?: string) => {
+  const generatePlan = () => generatePlanWithScheduled(); = async (dayName: string, style?: string, protein?: string) => {
     setSwapping(dayName);
     setSwapMenuDay(null);
     try {
@@ -688,7 +687,14 @@ export default function PlannerApp() {
                         <div style={{fontSize:13,fontWeight:700,color:"#14532D"}}>Added to your {fridgeRecipeDay} meal plan!</div>
                         <div style={{fontSize:11,color:"#4B5563",marginTop:2}}>It's saved to your favourites and scheduled. Generate your plan below to see it in the week.</div>
                       </div>
-                      <button onClick={generatePlan} style={{padding:"8px 14px",background:"#22C55E",color:"white",border:"none",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>Generate plan →</button>
+                      <button onClick={()=>{
+                        // Read latest from localStorage to avoid stale state
+                        try {
+                          const favs = JSON.parse(localStorage.getItem("sevendinners_favourites")||"[]");
+                          const sched = JSON.parse(localStorage.getItem("sevendinners_scheduled")||"{}");
+                          generatePlanWithScheduled(sched, favs);
+                        } catch(e) { generatePlan(); }
+                      }} style={{padding:"8px 14px",background:"#22C55E",color:"white",border:"none",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>Generate plan →</button>
                     </div>
                   ) : (
                     <div>
