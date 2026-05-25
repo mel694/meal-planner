@@ -362,7 +362,13 @@ export default function Home() {
           <div style={{fontSize:18,fontWeight:800}}>Seven Dinners</div>
         </div>
         <div style={{fontSize:13,opacity:0.8}}>Healthy eating made simple · real food · no UPF · cooked from scratch</div>
-        <div style={{fontSize:12,opacity:0.6,marginTop:20}}>© 2026 Seven Dinners · All rights reserved</div>
+        <div style={{display:"flex",justifyContent:"center",gap:20,marginTop:16,flexWrap:"wrap"}}>
+          <Link href="/privacy-policy" style={{color:"#86EFAC",fontSize:12,textDecoration:"none"}}>Privacy Policy</Link>
+          <Link href="/cookie-policy" style={{color:"#86EFAC",fontSize:12,textDecoration:"none"}}>Cookie Policy</Link>
+          <Link href="/terms" style={{color:"#86EFAC",fontSize:12,textDecoration:"none"}}>Terms & Conditions</Link>
+          <a href="mailto:hello@sevendinners.co.uk" style={{color:"#86EFAC",fontSize:12,textDecoration:"none"}}>hello@sevendinners.co.uk</a>
+        </div>
+        <div style={{fontSize:12,opacity:0.6,marginTop:12}}>© 2026 Seven Dinners · All rights reserved · We may earn commission from supermarket links</div>
       </footer>
 
       {!cookieAccepted && (
