@@ -325,6 +325,86 @@ export default function PlannerApp() {
 
   const handlePrint = () => window.print();
 
+  const downloadCalendar = () => {
+    if (!mealPlan) return;
+    const lines = mealPlan.split("\n");
+    const events: string[] = [];
+    // Find the Monday of next week as the starting date
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon...
+    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + daysUntilMonday);
+
+    const dayOffsets: Record<string,number> = {
+      Monday:0, Tuesday:1, Wednesday:2, Thursday:3, Friday:4, Saturday:5, Sunday:6
+    };
+
+    let currentDay = "";
+    let mealTitle = "";
+
+    lines.forEach(line => {
+      if (line.startsWith("## ") && !line.includes("SHOPPING")) {
+        currentDay = line.replace("## ","").trim();
+        mealTitle = "";
+      } else if (currentDay && mealTitle === "" && line.includes("|")) {
+        mealTitle = line.split("|")[0].trim();
+      }
+      // When we have both day and title, create the event
+      if (currentDay && mealTitle) {
+        const offset = dayOffsets[currentDay];
+        if (offset !== undefined) {
+          const eventDate = new Date(nextMonday);
+          eventDate.setDate(nextMonday.getDate() + offset);
+
+          const pad = (n: number) => String(n).padStart(2,"0");
+          const dateStr = `${eventDate.getFullYear()}${pad(eventDate.getMonth()+1)}${pad(eventDate.getDate())}`;
+          const startTime = `${dateStr}T183000`; // 6:30pm
+          const endTime = `${dateStr}T200000`;   // 8:00pm
+          const uid = `sevendinners-${dateStr}@sevendinners.co.uk`;
+          const stamp = new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+
+          events.push([
+            "BEGIN:VEVENT",
+            `UID:${uid}`,
+            `DTSTAMP:${stamp}`,
+            `DTSTART:${startTime}`,
+            `DTEND:${endTime}`,
+            `SUMMARY:🍽️ ${mealTitle}`,
+            `DESCRIPTION:Seven Dinners weekly meal plan\nwww.sevendinners.co.uk`,
+            `CATEGORIES:Seven Dinners`,
+            "END:VEVENT",
+          ].join("\r\n"));
+        }
+        currentDay = "";
+        mealTitle = "";
+      }
+    });
+
+    const icsContent = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Seven Dinners//Meal Planner//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "X-WR-CALNAME:Seven Dinners",
+      "X-WR-TIMEZONE:Europe/London",
+      ...events,
+      "END:VCALENDAR",
+    ].join("\r\n");
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "seven-dinners-meal-plan.ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("📅 Calendar file downloaded!");
+  };
+
   const parseMealPlan = (text: string) => {
     const lines = text.split("\n");
     const days: Array<{name:string, lines:string[]}> = [];
@@ -476,6 +556,7 @@ export default function PlannerApp() {
             ⭐ Favourites {favourites.length > 0 && <span style={{background:"#22C55E",color:"white",fontSize:10,fontWeight:700,padding:"1px 6px",borderRadius:100,marginLeft:4}}>{favourites.length}</span>}
           </button>
           {step==="plan" && <button onClick={handlePrint} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>}
+          {step==="plan" && <button onClick={downloadCalendar} style={{background:"#EFF6FF",color:"#1D4ED8",border:"1px solid #BFDBFE",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>📅 Calendar</button>}
           {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"white",color:"#6B7280",border:"1px solid #E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
         </div>
       </nav>
@@ -842,6 +923,7 @@ export default function PlannerApp() {
                 <div style={{fontSize:15,fontWeight:700,color:"#14532D"}}>This week's seven dinners</div>
                 <div style={{display:"flex",gap:8}}>
                   <button onClick={handlePrint} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #22C55E",background:"#F0FDF4",color:"#22C55E",cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>
+                  <button onClick={downloadCalendar} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #BFDBFE",background:"#EFF6FF",color:"#1D4ED8",cursor:"pointer",fontWeight:600}}>📅 Add to Calendar</button>
                   <button onClick={generatePlan} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #E5E7EB",background:"white",color:"#22C55E",cursor:"pointer",fontWeight:600}}>↻ new plan</button>
                 </div>
               </div>
