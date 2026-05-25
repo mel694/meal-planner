@@ -5,7 +5,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { adults, children, likes, dislikes, dietary, cookingTime, budget, swapDay, currentPlan, fridgePhotos, action } = body;
+    const { adults, children, likes, dislikes, dietary, cookingTime, budget, swapDay, currentPlan, fridgePhotos, action, swapStyle, swapProtein } = body;
 
     if (action === "analyse_fridge" && fridgePhotos && fridgePhotos.length > 0) {
       const content = [
@@ -44,11 +44,14 @@ Do not include packaging or branded items. Just the raw ingredients. Do not add 
     let prompt;
 
     if (swapDay && currentPlan) {
+      const styleInstruction = swapStyle && swapStyle !== "any" ? `It MUST be a ${swapStyle} recipe.` : "";
+      const proteinInstruction = swapProtein && swapProtein !== "any" ? `It MUST use ${swapProtein} as the main protein/ingredient.` : "";
       prompt = `The user wants to swap the meal on ${swapDay}. Here is their current meal plan:
 
 ${currentPlan}
 
 Please suggest a completely different meal for ${swapDay} only. It must be different from all other meals in the plan above.
+${styleInstruction} ${proteinInstruction}
 Family likes: ${likes}. Dislikes: ${dislikes}. Dietary: ${dietaryText}. Max cooking time: ${cookingTime}. Budget: ${budget}. Servings: ${servings}.
 
 Return ONLY the replacement content for ${swapDay} using the same format as the other days, starting with ## ${swapDay} and including the meal details, macros and ingredients. Do not include any other days or the shopping list.`;

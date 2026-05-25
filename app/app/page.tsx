@@ -65,6 +65,9 @@ export default function PlannerApp() {
   const [selectedSupermarket, setSelectedSupermarket] = useState("sainsburys");
   const [deletedDays, setDeletedDays] = useState<Record<string,string>>({});
   const [swapping, setSwapping] = useState<string|null>(null);
+  const [swapMenuDay, setSwapMenuDay] = useState<string|null>(null);
+  const [swapStyle, setSwapStyle] = useState("any");
+  const [swapProtein, setSwapProtein] = useState("any");
   const [macrosPerPerson, setMacrosPerPerson] = useState(false);
 
   const [fridgePhotos, setFridgePhotos] = useState<FridgePhoto[]>([]);
@@ -208,13 +211,14 @@ export default function PlannerApp() {
     }
   };
 
-  const swapMeal = async (dayName: string) => {
+  const swapMeal = async (dayName: string, style?: string, protein?: string) => {
     setSwapping(dayName);
+    setSwapMenuDay(null);
     try {
       const res = await fetch("/api/mealplan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...prefs, swapDay: dayName, currentPlan: mealPlan }),
+        body: JSON.stringify({ ...prefs, swapDay: dayName, currentPlan: mealPlan, swapStyle: style || swapStyle, swapProtein: protein || swapProtein }),
       });
       const data = await res.json();
       if (data.mealPlan) {
@@ -449,7 +453,7 @@ export default function PlannerApp() {
         </div>
       </div>
 
-      <div style={{background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",padding:"40px 24px 60px",position:"relative",overflow:"hidden"}} className="no-print">
+      <div style={{background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",padding:"24px 24px 44px",position:"relative",overflow:"hidden"}} className="no-print">
         <div style={{position:"absolute",top:-20,right:-30,width:140,height:140,background:"rgba(34,197,94,0.1)",borderRadius:"50%"}}/>
         <div style={{position:"absolute",bottom:-40,left:-20,width:100,height:100,background:"rgba(168,85,247,0.08)",borderRadius:"50%"}}/>
         <div style={{position:"relative",zIndex:1,maxWidth:680,margin:"0 auto"}}>
@@ -464,6 +468,16 @@ export default function PlannerApp() {
             <span style={{background:"white",color:"#14532D",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,border:"1px solid #BBF7D0"}}>👩‍🍳 Cook from scratch</span>
             <span style={{background:"white",color:"#14532D",fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:100,border:"1px solid #BBF7D0"}}>🚫 No UPF</span>
           </div>
+          {step==="plan" && (
+            <div style={{marginTop:14,background:"white",borderRadius:12,padding:"10px 16px",border:"1px solid #BBF7D0",display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:20}}>🛒</span>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#14532D"}}>Your shopping list is ready!</div>
+                <div style={{fontSize:11,color:"#4B5563"}}>Scroll to the bottom of this page to see all your ingredients with supermarket links.</div>
+              </div>
+              <a href="#shopping" style={{marginLeft:"auto",fontSize:12,fontWeight:700,color:"#22C55E",textDecoration:"none",whiteSpace:"nowrap",flexShrink:0}}>jump down ↓</a>
+            </div>
+          )}
         </div>
       </div>
 
@@ -660,9 +674,30 @@ export default function PlannerApp() {
                           <button onClick={()=>saveFavourite(day.name, day.lines)} disabled={isFavourited} title={isFavourited?"Already saved":"Save to favourites"} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid #E5E7EB",background:isFavourited?"#F0FDF4":"white",color:isFavourited?"#22C55E":"#888",cursor:isFavourited?"default":"pointer",fontWeight:600}}>
                             {isFavourited?"⭐":"☆"} {isFavourited?"saved":"save"}
                           </button>
-                          <button onClick={()=>swapMeal(day.name)} disabled={isSwapping} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid #E5E7EB",background:"white",color:"#22C55E",cursor:"pointer",fontWeight:600,opacity:isSwapping?0.5:1}}>
-                            {isSwapping?"⏳":"↻"} swap
-                          </button>
+                          <div style={{position:"relative"}}>
+                            <button onClick={()=>setSwapMenuDay(swapMenuDay===day.name?null:day.name)} disabled={isSwapping} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid #E5E7EB",background:swapMenuDay===day.name?"#F0FDF4":"white",color:"#22C55E",cursor:"pointer",fontWeight:600,opacity:isSwapping?0.5:1}}>
+                              {isSwapping?"⏳ swapping...":"↻ swap ▾"}
+                            </button>
+                            {swapMenuDay===day.name && (
+                              <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"white",border:"1px solid #E5E7EB",borderRadius:14,padding:14,zIndex:50,minWidth:220,boxShadow:"0 8px 24px rgba(0,0,0,0.12)"}}>
+                                <div style={{fontSize:11,fontWeight:700,color:"#14532D",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>🍳 Cooking style</div>
+                                <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:12}}>
+                                  {[["any","🍳 Any"],["slowcooker","🍲 Slow cooker"],["airfryer","♨️ Air fryer"],["onepot","🥘 One pot"]].map(([val,label])=>(
+                                    <button key={val} onClick={()=>setSwapStyle(val)} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid",borderColor:swapStyle===val?"#22C55E":"#E5E7EB",background:swapStyle===val?"#F0FDF4":"white",color:swapStyle===val?"#14532D":"#666",cursor:"pointer",fontWeight:swapStyle===val?700:400}}>{label}</button>
+                                  ))}
+                                </div>
+                                <div style={{fontSize:11,fontWeight:700,color:"#14532D",textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>🥩 Protein / type</div>
+                                <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:12}}>
+                                  {[["any","🍽️ Any"],["vegetarian","🥗 Vegetarian"],["chicken","🍗 Chicken"],["beef","🥩 Beef"],["salmon","🐟 Salmon"],["pasta","🍝 Pasta"]].map(([val,label])=>(
+                                    <button key={val} onClick={()=>setSwapProtein(val)} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid",borderColor:swapProtein===val?"#22C55E":"#E5E7EB",background:swapProtein===val?"#F0FDF4":"white",color:swapProtein===val?"#14532D":"#666",cursor:"pointer",fontWeight:swapProtein===val?700:400}}>{label}</button>
+                                  ))}
+                                </div>
+                                <button onClick={()=>swapMeal(day.name, swapStyle, swapProtein)} style={{width:"100%",padding:"9px",fontSize:13,fontWeight:700,background:"#22C55E",color:"white",border:"none",borderRadius:10,cursor:"pointer"}}>
+                                  ↻ Swap this meal
+                                </button>
+                              </div>
+                            )}
+                          </div>
                           <select onChange={(e)=>{if(e.target.value)setDeletedDays(p=>({...p,[day.name]:e.target.value}))}} value={isDeleted||""} style={{fontSize:11,padding:"4px 10px",borderRadius:100,border:"1px solid #E5E7EB",background:"white",color:"#888",cursor:"pointer"}}>
                             <option value="">🗑️ replace</option>
                             {REPLACE_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
@@ -684,7 +719,7 @@ export default function PlannerApp() {
               </div>
             </div>
 
-            <div className="shopping-section" style={{marginTop:16,background:"white",borderRadius:16,border:"1px solid #E5E7EB",overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>
+            <div id="shopping" className="shopping-section" style={{marginTop:16,background:"white",borderRadius:16,border:"1px solid #E5E7EB",overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>
               <div style={{background:"#22C55E",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                 <div>
                   <div style={{color:"white",fontSize:15,fontWeight:700}}>Shopping list</div>

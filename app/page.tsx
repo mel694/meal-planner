@@ -117,8 +117,6 @@ export default function Home() {
     { name: "ASDA", color: "#78BE20" },
     { name: "Ocado", color: "#722F8F" },
     { name: "Morrisons", color: "#FFD200" },
-    { name: "Aldi", color: "#00549A" },
-    { name: "Amazon Fresh", color: "#FF9900" },
   ];
 
   return (
