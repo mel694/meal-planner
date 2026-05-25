@@ -2,47 +2,85 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const GOAL_PROMPTS = {
+  balanced: "",
+  highprotein: "IMPORTANT: Every meal MUST be high in protein (at least 35g per serving). Prioritise chicken, turkey, fish, eggs, Greek yogurt, legumes and lean meats. Include protein content prominently in each meal.",
+  fatloss: "IMPORTANT: Every meal MUST be low calorie (under 500 calories per serving) and high in fibre and protein to keep the family full. Avoid heavy carbs, fried foods and creamy sauces. Focus on vegetables, lean proteins and whole grains.",
+  quick: "IMPORTANT: Every meal MUST take 20 minutes or less from start to finish. No exceptions. Prioritise stir-fries, quick pasta dishes, omelettes, wraps and simple grilled proteins.",
+  toddler: "IMPORTANT: These meals MUST be suitable for babies and toddlers (6 months to 3 years). No added salt, no honey, no whole nuts, no shellfish. Soft textures, mild flavours, easy to eat with hands or a spoon. Include finger food options where possible.",
+  plantbased: "IMPORTANT: Every meal MUST be plant-forward — primarily vegetables, legumes, grains, nuts and seeds. Meat is allowed occasionally but vegetables should be the star. Prioritise colourful, nutrient-dense plant ingredients.",
+};
+
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { adults, children, likes, dislikes, dietary, cookingTime, budget, swapDay, currentPlan, fridgePhotos, action, swapStyle, swapProtein } = body;
+    const { adults, children, likes, dislikes, dietary, cookingTime, budget, swapDay, currentPlan, fridgePhotos, action, swapStyle, swapProtein, mealGoal, ingredients } = body;
 
+    // Action: analyse fridge photos
     if (action === "analyse_fridge" && fridgePhotos && fridgePhotos.length > 0) {
       const content = [
         ...fridgePhotos.map((photo) => ({
           type: "image",
-          source: {
-            type: "base64",
-            media_type: photo.mediaType || "image/jpeg",
-            data: photo.data,
-          },
+          source: { type: "base64", media_type: photo.mediaType || "image/jpeg", data: photo.data },
         })),
         {
           type: "text",
-          text: `Look carefully at these photos of a fridge and/or kitchen cupboards. List EVERY ingredient or food item you can clearly see in the photos.
+          text: `Look carefully at these photos of a fridge and/or kitchen cupboards. List EVERY ingredient or food item you can clearly see.
 
 Return ONLY a simple comma-separated list of ingredients in lowercase. For example: eggs, butter, milk, cheddar, onions, garlic, chicken thighs, pasta, tomatoes, lettuce.
 
-Do not include packaging or branded items. Just the raw ingredients. Do not add any other text, explanation or formatting.`,
+Do not include packaging or branded items. Just the raw ingredients. No other text or formatting.`,
         },
       ];
-
       const message = await client.messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: 1000,
         messages: [{ role: "user", content }],
       });
+      return Response.json({ ingredients: message.content[0].text.trim() });
+    }
 
-      const ingredients = message.content[0].text.trim();
-      return Response.json({ ingredients });
+    // Action: generate a single recipe from fridge ingredients
+    if (action === "fridge_recipe" && ingredients) {
+      const servings = parseInt(adults || 2) + parseInt(children || 2);
+      const prompt = `You are a creative chef. Using ONLY these ingredients (or a selection of them), create ONE delicious dinner recipe for ${servings} people:
+
+${ingredients}
+
+You may also assume the family has basic pantry staples: salt, pepper, olive oil, butter, garlic, onion, and common dried herbs and spices.
+
+Return the recipe in this format:
+
+## [Recipe Name]
+[Cuisine] | [Cooking time] | [Difficulty]
+[2 sentence description]
+Calories: Xcal | Protein: Xg | Carbs: Xg | Fat: Xg
+
+**Ingredients**
+- ingredient (amount)
+
+**Method**
+1. Step one
+2. Step two
+
+Keep it practical and delicious. Only use what's available.`;
+
+      const message = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }],
+      });
+      return Response.json({ recipe: message.content[0].text.trim() });
     }
 
     const dietaryText = dietary && dietary.length > 0 ? dietary.join(", ") : "none";
     const servings = parseInt(adults) + parseInt(children);
     const alreadyHave = body.alreadyHave || "";
+    const goalInstruction = GOAL_PROMPTS[mealGoal] || "";
 
     let prompt;
 
+    // Action: swap a single meal
     if (swapDay && currentPlan) {
       const styleInstruction = swapStyle && swapStyle !== "any" ? `It MUST be a ${swapStyle} recipe.` : "";
       const proteinInstruction = swapProtein && swapProtein !== "any" ? `It MUST use ${swapProtein} as the main protein/ingredient.` : "";
@@ -50,14 +88,20 @@ Do not include packaging or branded items. Just the raw ingredients. Do not add 
 
 ${currentPlan}
 
-Please suggest a completely different meal for ${swapDay} only. It must be different from all other meals in the plan above.
-${styleInstruction} ${proteinInstruction}
+Please suggest a completely different meal for ${swapDay} only. It must be different from all other meals above.
+${styleInstruction} ${proteinInstruction} ${goalInstruction}
 Family likes: ${likes}. Dislikes: ${dislikes}. Dietary: ${dietaryText}. Max cooking time: ${cookingTime}. Budget: ${budget}. Servings: ${servings}.
 
-Return ONLY the replacement content for ${swapDay} using the same format as the other days, starting with ## ${swapDay} and including the meal details, macros and ingredients. Do not include any other days or the shopping list.`;
+Return ONLY the replacement content for ${swapDay} using the same format, starting with ## ${swapDay}. Include meal details, macros and ingredients. Do not include other days or the shopping list.`;
+
     } else {
+      // Action: generate full 7-day meal plan
       const alreadyHaveSection = alreadyHave
-        ? `\n\nINGREDIENTS THE FAMILY ALREADY HAS (from fridge/cupboard photos):\n${alreadyHave}\n\nIMPORTANT: When generating the shopping list, DO NOT include these ingredients. The family already has them. You can still use them in recipes, but exclude them from the shopping list entirely.`
+        ? `\n\nINGREDIENTS ALREADY IN THE FRIDGE/CUPBOARD:\n${alreadyHave}\n\nDo NOT include these in the shopping list. You can use them in recipes but exclude from the shopping list.`
+        : "";
+
+      const cookingStyleInstruction = body.cookingStyle && body.cookingStyle !== "any"
+        ? `\nPreferred cooking style: ${body.cookingStyle}. Prioritise ${body.cookingStyle} recipes where possible.`
         : "";
 
       prompt = `Create a 7-day evening meal plan for a family of ${adults} adult(s) and ${children} child(ren) (${servings} people total).
@@ -66,7 +110,8 @@ Family likes: ${likes}
 Family dislikes: ${dislikes}
 Dietary requirements: ${dietaryText}
 Budget: ${budget}
-Maximum cooking time per meal: ${cookingTime}${alreadyHaveSection}
+Maximum cooking time per meal: ${cookingTime}${cookingStyleInstruction}
+${goalInstruction}${alreadyHaveSection}
 
 For each day use EXACTLY this format:
 ## Monday
@@ -81,7 +126,7 @@ Calories: Xcal | Protein: Xg | Carbs: Xg | Fat: Xg
 
 Repeat for Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
 
-After all 7 days you MUST include a shopping list using EXACTLY this format:
+After all 7 days include a shopping list in EXACTLY this format:
 
 ## SHOPPING LIST
 **Meat & Fish**
@@ -93,7 +138,7 @@ After all 7 days you MUST include a shopping list using EXACTLY this format:
 **Bakery**
 **Other**
 
-Include every ingredient from all 7 meals EXCEPT those already in the fridge/cupboard. Replace spaces with + in URLs. Do not skip any category.`;
+Include every ingredient from all 7 meals EXCEPT those already in the fridge. Replace spaces with + in URLs. Do not skip any category.`;
     }
 
     const message = await client.messages.create({

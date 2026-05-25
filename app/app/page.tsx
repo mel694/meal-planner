@@ -11,6 +11,14 @@ const COOKING_STYLES = [
   { id:"onepot", label:"🥘 One pot", desc:"Minimal washing up" },
   { id:"airfryer", label:"♨️ Air fryer", desc:"Quick & healthy" },
 ];
+const MEAL_GOALS = [
+  { id:"balanced", label:"🍽️ Balanced", desc:"Great all-rounder", color:"#22C55E", bg:"#F0FDF4" },
+  { id:"highprotein", label:"💪 High protein", desc:"Build muscle", color:"#3B82F6", bg:"#DBEAFE" },
+  { id:"fatloss", label:"🔥 Fat loss", desc:"Lower calorie meals", color:"#F59E0B", bg:"#FEF3C7" },
+  { id:"quick", label:"⚡ 20-min meals", desc:"When time is short", color:"#A855F7", bg:"#F3E8FF" },
+  { id:"toddler", label:"👶 Baby & toddler", desc:"Kid-friendly portions", color:"#EC4899", bg:"#FCE7F3" },
+  { id:"plantbased", label:"🌱 Plant-forward", desc:"Mostly veg & legumes", color:"#16A34A", bg:"#DCFCE7" },
+];
 const DAYS_OF_WEEK = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
 const SUPERMARKETS = [
@@ -73,6 +81,8 @@ export default function PlannerApp() {
   const [fridgePhotos, setFridgePhotos] = useState<FridgePhoto[]>([]);
   const [alreadyHave, setAlreadyHave] = useState("");
   const [analysing, setAnalysing] = useState(false);
+  const [fridgeRecipe, setFridgeRecipe] = useState("");
+  const [generatingFridgeRecipe, setGeneratingFridgeRecipe] = useState(false);
 
   const [favourites, setFavourites] = useState<Favourite[]>([]);
   const [scheduled, setScheduled] = useState<Scheduled>({});
@@ -84,7 +94,7 @@ export default function PlannerApp() {
     likes: "chicken, salmon, beef, pasta, roasted vegetables",
     dislikes: "pork, blue cheese, very spicy food",
     dietary: [] as string[], cookingTime: "45 mins", budget: "Medium",
-    cookingStyle: "any",
+    cookingStyle: "any", mealGoal: "balanced",
   });
 
   useEffect(() => {
@@ -180,6 +190,22 @@ export default function PlannerApp() {
       if (data.ingredients) setAlreadyHave(data.ingredients);
     } catch (e) { console.error(e); }
     setAnalysing(false);
+  };
+
+  const generateFridgeRecipe = async () => {
+    if (!alreadyHave) return;
+    setGeneratingFridgeRecipe(true);
+    setFridgeRecipe("");
+    try {
+      const res = await fetch("/api/mealplan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "fridge_recipe", ingredients: alreadyHave, adults: prefs.adults, children: prefs.children }),
+      });
+      const data = await res.json();
+      if (data.recipe) setFridgeRecipe(data.recipe);
+    } catch (e) { console.error(e); }
+    setGeneratingFridgeRecipe(false);
   };
 
   const generatePlan = async () => {
@@ -554,6 +580,19 @@ export default function PlannerApp() {
               )}
             </div>
 
+            {fridgeRecipe && (
+              <div style={{background:"white",borderRadius:16,border:"2px solid #16A34A",overflow:"hidden",boxShadow:"0 4px 16px rgba(22,163,74,0.12)"}}>
+                <div style={{background:"#16A34A",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div>
+                    <div style={{color:"white",fontSize:14,fontWeight:700}}>🍳 Your fridge recipe is ready!</div>
+                    <div style={{color:"#BBF7D0",fontSize:11,marginTop:2}}>Made from what you already have</div>
+                  </div>
+                  <button onClick={()=>setFridgeRecipe("")} style={{background:"rgba(255,255,255,0.2)",border:"none",color:"white",borderRadius:100,padding:"4px 10px",fontSize:11,cursor:"pointer"}}>✕ close</button>
+                </div>
+                <div style={{padding:"16px",fontSize:14,lineHeight:1.7,color:"#374151",whiteSpace:"pre-wrap"}}>{fridgeRecipe}</div>
+              </div>
+            )}
+
             <div className="two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               {["adults","children"].map((key)=>(
                 <div key={key} style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #E5E7EB"}}>
@@ -565,6 +604,19 @@ export default function PlannerApp() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #E5E7EB"}}>
+              <div style={{fontSize:11,color:"#22C55E",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>🎯 Meal goal</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                {MEAL_GOALS.map(g => (
+                  <button key={g.id} onClick={()=>setPrefs(p=>({...p,mealGoal:g.id}))} style={{padding:"10px 8px",borderRadius:10,fontSize:11,border:"2px solid",cursor:"pointer",textAlign:"center",background:prefs.mealGoal===g.id?g.bg:"white",borderColor:prefs.mealGoal===g.id?g.color:"#E5E7EB",fontWeight:prefs.mealGoal===g.id?700:500,transition:"all 0.15s"}}>
+                    <div style={{fontSize:18,marginBottom:3}}>{g.label.split(" ")[0]}</div>
+                    <div style={{color:prefs.mealGoal===g.id?g.color:"#374151",fontSize:11,fontWeight:600,lineHeight:1.2}}>{g.label.split(" ").slice(1).join(" ")}</div>
+                    <div style={{fontSize:10,color:"#888",marginTop:2,fontWeight:400}}>{g.desc}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div style={{background:"white",borderRadius:16,padding:"16px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #E5E7EB"}}>
