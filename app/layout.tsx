@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import GoogleAnalytics from "../components/GoogleAnalytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="en">
         <body style={{ margin: 0, padding: 0, boxSizing: "border-box" }}>
+          <GoogleAnalytics />
           {children}
         </body>
       </html>

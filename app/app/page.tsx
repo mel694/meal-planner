@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import { trackEvent } from "../../components/GoogleAnalytics";
 
 const DIETARY_OPTIONS = ["Vegetarian","Vegan","Gluten-free","Dairy-free","Nut-free","No pork","No shellfish"];
 const TIME_OPTIONS = ["20 mins","30 mins","45 mins","1 hour","No limit"];
@@ -142,6 +143,7 @@ export default function PlannerApp() {
         return prev;
       }
       showToast(`⭐ Saved "${mealName}"`);
+      trackEvent("favourite_saved", { meal_name: mealName });
       return [newFav, ...prev];
     });
   };
@@ -225,7 +227,10 @@ export default function PlannerApp() {
         body: JSON.stringify({ action: "analyse_fridge", fridgePhotos: fridgePhotos.map(p => ({ data: p.data, mediaType: p.mediaType })) }),
       });
       const data = await res.json();
-      if (data.ingredients) setAlreadyHave(data.ingredients);
+      if (data.ingredients) {
+        setAlreadyHave(data.ingredients);
+        trackEvent("fridge_scanned", { ingredients_found: data.ingredients.split(",").length });
+      }
     } catch (e) { console.error(e); }
     setAnalysing(false);
   };
@@ -241,7 +246,10 @@ export default function PlannerApp() {
         body: JSON.stringify({ action: "fridge_recipe", ingredients: alreadyHave, adults: prefs.adults, children: prefs.children }),
       });
       const data = await res.json();
-      if (data.recipe) setFridgeRecipe(data.recipe);
+      if (data.recipe) {
+        setFridgeRecipe(data.recipe);
+        trackEvent("fridge_recipe_generated");
+      }
     } catch (e) { console.error(e); }
     setGeneratingFridgeRecipe(false);
   };
@@ -290,6 +298,7 @@ export default function PlannerApp() {
       if (data.error) throw new Error(data.error);
       setMealPlan(data.mealPlan);
       setStep("plan");
+      trackEvent("meal_plan_generated", { cooking_style: prefs.cookingStyle, meal_goal: prefs.mealGoal, budget: prefs.budget });
     } catch (e) {
       setError("Something went wrong. Please try again.");
       setStep("prefs");
@@ -405,6 +414,7 @@ export default function PlannerApp() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     showToast("📅 Calendar file downloaded!");
+    trackEvent("calendar_downloaded");
   };
 
   const parseMealPlan = (text: string) => {
