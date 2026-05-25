@@ -83,6 +83,8 @@ export default function PlannerApp() {
   const [analysing, setAnalysing] = useState(false);
   const [fridgeRecipe, setFridgeRecipe] = useState("");
   const [generatingFridgeRecipe, setGeneratingFridgeRecipe] = useState(false);
+  const [fridgeRecipeDay, setFridgeRecipeDay] = useState("");
+  const [fridgeRecipeAdded, setFridgeRecipeAdded] = useState(false);
 
   const [favourites, setFavourites] = useState<Favourite[]>([]);
   const [scheduled, setScheduled] = useState<Scheduled>({});
@@ -206,6 +208,27 @@ export default function PlannerApp() {
       if (data.recipe) setFridgeRecipe(data.recipe);
     } catch (e) { console.error(e); }
     setGeneratingFridgeRecipe(false);
+  };
+
+  const addFridgeRecipeToPlanner = (day: string) => {
+    if (!fridgeRecipe || !day) return;
+    // Extract meal name from recipe (first line after ##)
+    const lines = fridgeRecipe.split("\n");
+    const nameLine = lines.find(l => l.startsWith("## "));
+    const mealName = nameLine ? nameLine.replace("## ","").trim() : "Fridge Recipe";
+    // Save as a favourite
+    const id = `fav-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    const content = `## ${day}\n${fridgeRecipe.replace(/^## .+\n/, "")}`;
+    const newFav: Favourite = { id, name: mealName, content, savedAt: Date.now() };
+    setFavourites(prev => {
+      const exists = prev.some(f => f.name === mealName);
+      return exists ? prev : [newFav, ...prev];
+    });
+    // Schedule it for that day
+    setScheduled(prev => ({ ...prev, [day]: id }));
+    setFridgeRecipeDay(day);
+    setFridgeRecipeAdded(true);
+    showToast(`📅 "${mealName}" added to ${day}!`);
   };
 
   const generatePlan = async () => {
@@ -609,15 +632,50 @@ export default function PlannerApp() {
             </div>
 
             {fridgeRecipe && (
-              <div style={{background:"white",borderRadius:16,border:"2px solid #16A34A",overflow:"hidden",boxShadow:"0 4px 16px rgba(22,163,74,0.12)"}}>
-                <div style={{background:"#16A34A",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{background:"white",borderRadius:16,border:"2px solid #16A34A",overflow:"hidden",boxShadow:"0 4px 20px rgba(22,163,74,0.15)"}}>
+                <div style={{background:"linear-gradient(135deg,#16A34A,#22C55E)",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div>
-                    <div style={{color:"white",fontSize:14,fontWeight:700}}>🍳 Your fridge recipe is ready!</div>
-                    <div style={{color:"#BBF7D0",fontSize:11,marginTop:2}}>Made from what you already have</div>
+                    <div style={{color:"white",fontSize:15,fontWeight:800}}>🍳 Your fridge recipe is ready!</div>
+                    <div style={{color:"#BBF7D0",fontSize:12,marginTop:2}}>Made from what you already have · zero food waste</div>
                   </div>
-                  <button onClick={()=>setFridgeRecipe("")} style={{background:"rgba(255,255,255,0.2)",border:"none",color:"white",borderRadius:100,padding:"4px 10px",fontSize:11,cursor:"pointer"}}>✕ close</button>
+                  <button onClick={()=>{setFridgeRecipe("");setFridgeRecipeAdded(false);setFridgeRecipeDay("");}} style={{background:"rgba(255,255,255,0.2)",border:"none",color:"white",borderRadius:100,padding:"5px 12px",fontSize:11,cursor:"pointer",fontWeight:600}}>✕ close</button>
                 </div>
-                <div style={{padding:"16px",fontSize:14,lineHeight:1.7,color:"#374151",whiteSpace:"pre-wrap"}}>{fridgeRecipe}</div>
+
+                <div style={{padding:"16px",fontSize:14,lineHeight:1.7,color:"#374151",whiteSpace:"pre-wrap",borderBottom:"1px solid #F0FDF4"}}>{fridgeRecipe}</div>
+
+                <div style={{padding:"14px 16px",background:"#F0FDF4"}}>
+                  {fridgeRecipeAdded ? (
+                    <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:"white",borderRadius:12,border:"2px solid #22C55E"}}>
+                      <span style={{fontSize:24}}>🎉</span>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:13,fontWeight:700,color:"#14532D"}}>Added to your {fridgeRecipeDay} meal plan!</div>
+                        <div style={{fontSize:11,color:"#4B5563",marginTop:2}}>It's saved to your favourites and scheduled. Generate your plan below to see it in the week.</div>
+                      </div>
+                      <button onClick={generatePlan} style={{padding:"8px 14px",background:"#22C55E",color:"white",border:"none",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>Generate plan →</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{fontSize:12,fontWeight:700,color:"#14532D",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{fontSize:16}}>📅</span>
+                        Add this recipe to your weekly meal planner
+                      </div>
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:8}}>
+                        {DAYS_OF_WEEK.map(day => {
+                          const isScheduled = scheduled[day];
+                          return (
+                            <button key={day} onClick={()=>addFridgeRecipeToPlanner(day)} disabled={!!isScheduled} style={{padding:"8px 4px",borderRadius:10,border:"2px solid",borderColor:isScheduled?"#E5E7EB":"#22C55E",background:isScheduled?"#F9FAFB":"white",color:isScheduled?"#aaa":"#14532D",fontSize:11,fontWeight:700,cursor:isScheduled?"not-allowed":"pointer",textAlign:"center",opacity:isScheduled?0.5:1}}>
+                              <div style={{fontSize:16,marginBottom:2}}>{["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][DAYS_OF_WEEK.indexOf(day)]}</div>
+                              {isScheduled ? <div style={{fontSize:9,color:"#aaa"}}>taken</div> : <div style={{fontSize:9,color:"#22C55E"}}>+ add</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div style={{fontSize:11,color:"#4B5563",textAlign:"center"}}>
+                        Tap a day to add this recipe to that day's slot in your next plan
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
