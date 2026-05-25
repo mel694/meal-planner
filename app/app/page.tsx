@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 const DIETARY_OPTIONS = ["Vegetarian","Vegan","Gluten-free","Dairy-free","Nut-free","No pork","No shellfish"];
 const TIME_OPTIONS = ["20 mins","30 mins","45 mins","1 hour","No limit"];
@@ -117,6 +118,7 @@ export default function PlannerApp() {
     try { localStorage.setItem("sevendinners_scheduled", JSON.stringify(scheduled)); } catch (e) {}
   }, [scheduled]);
 
+  const { user, isSignedIn } = useUser();
   const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
   const totalPeople = prefs.adults + prefs.children;
 
@@ -558,6 +560,14 @@ export default function PlannerApp() {
           {step==="plan" && <button onClick={handlePrint} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>}
           {step==="plan" && <button onClick={downloadCalendar} style={{background:"#EFF6FF",color:"#1D4ED8",border:"1px solid #BFDBFE",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>📅 Calendar</button>}
           {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"white",color:"#6B7280",border:"1px solid #E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
+          {isSignedIn ? (
+            <Link href="/account" style={{background:"#22C55E",color:"white",border:"none",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
+              {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:20,height:20,borderRadius:"50%"}}/>}
+              Account
+            </Link>
+          ) : (
+            <Link href="/sign-in" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,fontWeight:600,textDecoration:"none"}}>Log in</Link>
+          )}
         </div>
       </nav>
 

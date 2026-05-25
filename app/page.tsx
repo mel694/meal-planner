@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
 
 const Logo = ({ size = 44 }: { size?: number }) => (
@@ -23,7 +22,6 @@ const Logo = ({ size = 44 }: { size?: number }) => (
 );
 
 export default function Home() {
-  const [showSignupModal, setShowSignupModal] = useState(false);
 
   const features = [
     { icon: "📅", color: "#22C55E", bg: "#DCFCE7", label: "AI Meal Planning" },
@@ -170,8 +168,8 @@ export default function Home() {
           ))}
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
-          <button onClick={()=>setShowSignupModal(true)} style={{padding:"8px 20px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,cursor:"pointer"}}>Log in</button>
-          <button onClick={()=>setShowSignupModal(true)} style={{padding:"8px 20px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,cursor:"pointer"}}>Sign Up</button>
+          <Link href="/sign-in" style={{padding:"8px 20px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Log in</Link>
+          <Link href="/sign-up" style={{padding:"8px 20px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Sign Up</Link>
         </div>
       </nav>
 
@@ -240,9 +238,9 @@ export default function Home() {
                 ))}
               </ul>
               {plan.buttonStyle==="filled" ? (
-                <button onClick={()=>setShowSignupModal(true)} style={{width:"100%",padding:"13px",background:"#A855F7",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{plan.buttonText}</button>
+                <Link href="/sign-up" style={{display:"block",textAlign:"center",padding:"13px",background:"#A855F7",color:"white",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               ) : plan.buttonStyle==="outline-green" ? (
-                <button onClick={()=>setShowSignupModal(true)} style={{width:"100%",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{plan.buttonText}</button>
+                <Link href="/sign-up" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               ) : (
                 <Link href="/app" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               )}
