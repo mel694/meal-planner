@@ -166,12 +166,49 @@ export default function PlannerApp() {
     if (files.length === 0) return;
     for (const file of files) {
       if (fridgePhotos.length >= 3) break;
-      const reader = new FileReader();
       await new Promise<void>((resolve) => {
-        reader.onload = () => {
+        const reader = new FileReader();
+        reader.onload = async () => {
           const result = reader.result as string;
-          setFridgePhotos(prev => [...prev, { data: result.split(",")[1], mediaType: file.type, preview: result }]);
-          resolve();
+          const isHeic = file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().endsWith(".heic") || file.name.toLowerCase().endsWith(".heif");
+          if (isHeic) {
+            // Convert HEIC to JPEG via canvas
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              const ctx = canvas.getContext("2d");
+              if (ctx) {
+                ctx.drawImage(img, 0, 0);
+                const jpegDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                setFridgePhotos(prev => [...prev, {
+                  data: jpegDataUrl.split(",")[1],
+                  mediaType: "image/jpeg",
+                  preview: jpegDataUrl,
+                }]);
+              }
+              resolve();
+            };
+            img.onerror = () => {
+              // Canvas HEIC fallback failed — try sending as-is and let the API handle it
+              setFridgePhotos(prev => [...prev, {
+                data: result.split(",")[1],
+                mediaType: "image/jpeg",
+                preview: result,
+              }]);
+              resolve();
+            };
+            img.src = result;
+          } else {
+            // Standard image — use as-is
+            setFridgePhotos(prev => [...prev, {
+              data: result.split(",")[1],
+              mediaType: file.type || "image/jpeg",
+              preview: result,
+            }]);
+            resolve();
+          }
         };
         reader.readAsDataURL(file);
       });
@@ -596,7 +633,7 @@ export default function PlannerApp() {
                 {fridgePhotos.length < 3 && (
                   <label style={{flex:1,minWidth:140,padding:"11px 14px",background:"white",border:"2px dashed #F59E0B",borderRadius:10,fontSize:13,color:"#92400E",cursor:"pointer",textAlign:"center",fontWeight:700}}>
                     📷 {fridgePhotos.length === 0 ? "Take or upload a photo" : "Add another photo"}
-                    <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} style={{display:"none"}}/>
+                    <input type="file" accept="image/*,.heic,.heif" multiple onChange={handlePhotoUpload} style={{display:"none"}}/>
                   </label>
                 )}
                 {fridgePhotos.length > 0 && !alreadyHave && (
