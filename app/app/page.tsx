@@ -538,43 +538,71 @@ export default function PlannerApp() {
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                 <span style={{fontSize:24}}>📸</span>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:14,fontWeight:700,color:"#92400E"}}>Snap your fridge or cupboard</div>
-                  <div style={{fontSize:11,color:"#B45309"}}>Optional · we'll skip ingredients you already have</div>
+                  <div style={{fontSize:15,fontWeight:800,color:"#92400E",letterSpacing:"-0.3px"}}>📸 Snap your fridge or cupboard</div>
+                  <div style={{fontSize:12,color:"#B45309",marginTop:2,fontWeight:500}}>The magic AI feature everyone is talking about ✨</div>
                 </div>
-                <span style={{background:"#F59E0B",color:"white",fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100}}>NEW</span>
+                <span style={{background:"linear-gradient(135deg,#F59E0B,#EF4444)",color:"white",fontSize:10,fontWeight:800,padding:"4px 10px",borderRadius:100,letterSpacing:"0.03em"}}>✨ AI MAGIC</span>
               </div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+                {[
+                  { icon:"🍳", title:"Cook right now", desc:"Get a recipe from what's in your fridge in seconds" },
+                  { icon:"♻️", title:"Reduce food waste", desc:"Use up ingredients before they go off" },
+                  { icon:"🛒", title:"Skip what you have", desc:"We won't add these to your shopping list" },
+                ].map((item,i) => (
+                  <div key={i} style={{background:"white",borderRadius:10,padding:"10px 8px",textAlign:"center",border:"1px solid #FCD34D"}}>
+                    <div style={{fontSize:20,marginBottom:4}}>{item.icon}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:"#92400E",marginBottom:3,lineHeight:1.2}}>{item.title}</div>
+                    <div style={{fontSize:10,color:"#B45309",lineHeight:1.3}}>{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+
               {fridgePhotos.length > 0 && (
                 <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
                   {fridgePhotos.map((photo, idx) => (
-                    <div key={idx} style={{position:"relative",width:70,height:70,borderRadius:10,overflow:"hidden",border:"2px solid white"}}>
+                    <div key={idx} style={{position:"relative",width:70,height:70,borderRadius:10,overflow:"hidden",border:"2px solid white",boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
                       <img src={photo.preview} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                      <button onClick={()=>{setFridgePhotos(prev=>prev.filter((_,i)=>i!==idx));setAlreadyHave("")}} style={{position:"absolute",top:2,right:2,width:20,height:20,borderRadius:"50%",border:"none",background:"rgba(0,0,0,0.7)",color:"white",fontSize:12,cursor:"pointer"}}>×</button>
+                      <button onClick={()=>{setFridgePhotos(prev=>prev.filter((_,i)=>i!==idx));setAlreadyHave("")}} style={{position:"absolute",top:2,right:2,width:20,height:20,borderRadius:"50%",border:"none",background:"rgba(0,0,0,0.7)",color:"white",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
                     </div>
                   ))}
                 </div>
               )}
+
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                 {fridgePhotos.length < 3 && (
-                  <label style={{flex:1,minWidth:140,padding:"10px 14px",background:"white",border:"2px dashed #F59E0B",borderRadius:10,fontSize:12,color:"#92400E",cursor:"pointer",textAlign:"center",fontWeight:600}}>
-                    📷 {fridgePhotos.length === 0 ? "Add photos" : "Add another"}
+                  <label style={{flex:1,minWidth:140,padding:"11px 14px",background:"white",border:"2px dashed #F59E0B",borderRadius:10,fontSize:13,color:"#92400E",cursor:"pointer",textAlign:"center",fontWeight:700}}>
+                    📷 {fridgePhotos.length === 0 ? "Take or upload a photo" : "Add another photo"}
                     <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} style={{display:"none"}}/>
                   </label>
                 )}
                 {fridgePhotos.length > 0 && !alreadyHave && (
-                  <button onClick={analyseFridge} disabled={analysing} style={{flex:1,minWidth:140,padding:"10px 14px",background:"#F59E0B",color:"white",border:"none",borderRadius:10,fontSize:12,cursor:"pointer",fontWeight:700,opacity:analysing?0.6:1}}>
-                    {analysing ? "🔍 Scanning..." : "✨ Scan ingredients"}
+                  <button onClick={analyseFridge} disabled={analysing} style={{flex:1,minWidth:140,padding:"11px 14px",background:"linear-gradient(135deg,#F59E0B,#F97316)",color:"white",border:"none",borderRadius:10,fontSize:13,cursor:"pointer",fontWeight:800,opacity:analysing?0.7:1,boxShadow:"0 4px 12px rgba(245,158,11,0.4)"}}>
+                    {analysing ? "🔍 AI is scanning your fridge..." : "✨ Scan with AI"}
                   </button>
                 )}
               </div>
+
               {alreadyHave && (
-                <div style={{marginTop:10,padding:"10px 12px",background:"white",borderRadius:10,border:"1px solid #FCD34D"}}>
-                  <div style={{fontSize:11,fontWeight:700,color:"#92400E",marginBottom:6,display:"flex",justifyContent:"space-between"}}>
-                    <span>✓ FOUND {ingredientsList.length} INGREDIENTS</span>
-                    <button onClick={()=>{setAlreadyHave("");setFridgePhotos([])}} style={{background:"none",border:"none",color:"#888",fontSize:11,cursor:"pointer"}}>clear</button>
+                <div style={{marginTop:10,padding:"12px 14px",background:"white",borderRadius:12,border:"1px solid #FCD34D"}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"#92400E",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span>✅ AI found {ingredientsList.length} ingredients in your fridge!</span>
+                    <button onClick={()=>{setAlreadyHave("");setFridgePhotos([])}} style={{background:"none",border:"none",color:"#aaa",fontSize:11,cursor:"pointer"}}>clear</button>
                   </div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                    {ingredientsList.slice(0,15).map((ing, i) => <span key={i} style={{fontSize:11,padding:"2px 8px",background:"#FEF3C7",borderRadius:100,color:"#92400E"}}>{ing}</span>)}
-                    {ingredientsList.length > 15 && <span style={{fontSize:11,padding:"2px 8px",color:"#888"}}>+ {ingredientsList.length - 15} more</span>}
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:10}}>
+                    {ingredientsList.slice(0,15).map((ing, i) => <span key={i} style={{fontSize:11,padding:"3px 9px",background:"#FEF3C7",borderRadius:100,color:"#92400E",fontWeight:500}}>{ing}</span>)}
+                    {ingredientsList.length > 15 && <span style={{fontSize:11,padding:"3px 9px",color:"#888"}}>+ {ingredientsList.length - 15} more</span>}
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    <button onClick={generateFridgeRecipe} disabled={generatingFridgeRecipe} style={{padding:"11px",background:"linear-gradient(135deg,#16A34A,#22C55E)",color:"white",border:"none",borderRadius:10,fontSize:13,fontWeight:800,cursor:"pointer",opacity:generatingFridgeRecipe?0.6:1,boxShadow:"0 4px 12px rgba(22,163,74,0.3)"}}>
+                      {generatingFridgeRecipe ? "🍳 Creating your recipe..." : "🍳 Cook from my fridge now!"}
+                    </button>
+                    <button onClick={generatePlan} style={{padding:"11px",background:"white",color:"#92400E",border:"2px solid #FCD34D",borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                      📅 Plan my week instead
+                    </button>
+                  </div>
+                  <div style={{marginTop:8,fontSize:11,color:"#B45309",textAlign:"center",fontWeight:500}}>
+                    ♻️ Reducing food waste · 🛒 These won't appear on your shopping list
                   </div>
                 </div>
               )}
