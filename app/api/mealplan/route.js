@@ -77,6 +77,7 @@ Keep it practical and delicious. Only use what's available.`;
     const servings = parseInt(adults) + parseInt(children);
     const alreadyHave = body.alreadyHave || "";
     const goalInstruction = GOAL_PROMPTS[mealGoal] || "";
+    const scheduledMeals = body.scheduledMeals || [];
 
     let prompt;
 
@@ -104,6 +105,21 @@ Return ONLY the replacement content for ${swapDay} using the same format, starti
         ? `\nPreferred cooking style: ${body.cookingStyle}. Prioritise ${body.cookingStyle} recipes where possible.`
         : "";
 
+      // Build scheduled meals section
+      const scheduledDays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+      let scheduledSection = "";
+      if (scheduledMeals.length > 0) {
+        scheduledSection = "\n\nPRE-SCHEDULED MEALS — use these exactly as provided for these days, do not change them:\n";
+        scheduledMeals.forEach((sm) => {
+          if (sm && sm.day && sm.content) {
+            scheduledSection += `\n${sm.content}\n`;
+          }
+        });
+        const scheduledDayNames = scheduledMeals.map(sm => sm.day);
+        const remainingDays = scheduledDays.filter(d => !scheduledDayNames.includes(d));
+        scheduledSection += `\nGenerate NEW meals for these remaining days only: ${remainingDays.join(", ")}.`;
+      }
+
       prompt = `Create a 7-day evening meal plan for a family of ${adults} adult(s) and ${children} child(ren) (${servings} people total).
 
 Family likes: ${likes}
@@ -111,7 +127,7 @@ Family dislikes: ${dislikes}
 Dietary requirements: ${dietaryText}
 Budget: ${budget}
 Maximum cooking time per meal: ${cookingTime}${cookingStyleInstruction}
-${goalInstruction}${alreadyHaveSection}
+${goalInstruction}${alreadyHaveSection}${scheduledSection}
 
 For each day use EXACTLY this format:
 ## Monday
@@ -124,7 +140,7 @@ Calories: Xcal | Protein: Xg | Carbs: Xg | Fat: Xg
 1. Step one
 2. Step two
 
-Repeat for Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
+Repeat for ALL 7 days — Monday through Sunday — in order. Include the pre-scheduled meals exactly as provided above for their days.
 
 After all 7 days include a shopping list in EXACTLY this format:
 
