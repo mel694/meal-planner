@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 
@@ -24,6 +25,15 @@ const Logo = ({ size = 44 }: { size?: number }) => (
 
 export default function Home() {
   const { user, isSignedIn } = useUser();
+  const [cookieAccepted, setCookieAccepted] = React.useState(true);
+  React.useEffect(() => {
+    const accepted = localStorage.getItem("sd_cookie_consent");
+    if (!accepted) setCookieAccepted(false);
+  }, []);
+  const acceptCookies = () => {
+    localStorage.setItem("sd_cookie_consent", "true");
+    setCookieAccepted(true);
+  };
 
   const features = [
     { icon: "📅", color: "#22C55E", bg: "#DCFCE7", label: "AI Meal Planning" },
@@ -354,6 +364,20 @@ export default function Home() {
         <div style={{fontSize:13,opacity:0.8}}>Healthy eating made simple · real food · no UPF · cooked from scratch</div>
         <div style={{fontSize:12,opacity:0.6,marginTop:20}}>© 2026 Seven Dinners · All rights reserved</div>
       </footer>
+    </div>
+
+      {!cookieAccepted && (
+        <div style={{position:"fixed",bottom:0,left:0,right:0,background:"white",borderTop:"2px solid #E5E7EB",padding:"16px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap",zIndex:1000,boxShadow:"0 -4px 20px rgba(0,0,0,0.08)"}}>
+          <div style={{flex:1,minWidth:240}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#14532D",marginBottom:4}}>🍪 We use cookies</div>
+            <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>We use cookies to keep you signed in and to understand how you use Seven Dinners so we can improve it. See our <Link href="/cookie-policy" style={{color:"#22C55E"}}>Cookie Policy</Link> and <Link href="/privacy-policy" style={{color:"#22C55E"}}>Privacy Policy</Link>.</div>
+          </div>
+          <div style={{display:"flex",gap:8,flexShrink:0}}>
+            <button onClick={acceptCookies} style={{padding:"9px 20px",background:"#22C55E",color:"white",border:"none",borderRadius:100,fontSize:13,fontWeight:700,cursor:"pointer"}}>Accept all</button>
+            <button onClick={acceptCookies} style={{padding:"9px 20px",background:"white",color:"#6B7280",border:"1px solid #E5E7EB",borderRadius:100,fontSize:13,fontWeight:500,cursor:"pointer"}}>Necessary only</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
