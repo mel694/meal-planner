@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 const Logo = ({ size = 44 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
@@ -22,6 +23,7 @@ const Logo = ({ size = 44 }: { size?: number }) => (
 );
 
 export default function Home() {
+  const { user, isSignedIn } = useUser();
 
   const features = [
     { icon: "📅", color: "#22C55E", bg: "#DCFCE7", label: "AI Meal Planning" },
@@ -156,8 +158,17 @@ export default function Home() {
           ))}
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
-          <Link href="/sign-in" style={{padding:"8px 20px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Log in</Link>
-          <Link href="/sign-up" style={{padding:"8px 20px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Sign Up</Link>
+          {isSignedIn ? (
+            <Link href="/account" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none"}}>
+              {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:22,height:22,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.5)"}}/>}
+              <span>Account</span>
+            </Link>
+          ) : (
+            <>
+              <Link href="/sign-in" style={{padding:"8px 20px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Log in</Link>
+              <Link href="/sign-up" style={{padding:"8px 20px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Sign Up</Link>
+            </>
+          )}
         </div>
       </nav>
 
