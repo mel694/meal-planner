@@ -364,7 +364,6 @@ export default function Home() {
         <div style={{fontSize:13,opacity:0.8}}>Healthy eating made simple · real food · no UPF · cooked from scratch</div>
         <div style={{fontSize:12,opacity:0.6,marginTop:20}}>© 2026 Seven Dinners · All rights reserved</div>
       </footer>
-    </div>
 
       {!cookieAccepted && (
         <div style={{position:"fixed",bottom:0,left:0,right:0,background:"white",borderTop:"2px solid #E5E7EB",padding:"16px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap",zIndex:1000,boxShadow:"0 -4px 20px rgba(0,0,0,0.08)"}}>
