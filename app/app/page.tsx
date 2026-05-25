@@ -77,6 +77,7 @@ export default function PlannerApp() {
   const [swapStyle, setSwapStyle] = useState("any");
   const [swapProtein, setSwapProtein] = useState("any");
   const [macrosPerPerson, setMacrosPerPerson] = useState(false);
+  const [dayServings, setDayServings] = useState<Record<string,number>>({});
 
   const [fridgePhotos, setFridgePhotos] = useState<FridgePhoto[]>([]);
   const [alreadyHave, setAlreadyHave] = useState("");
@@ -366,7 +367,18 @@ export default function PlannerApp() {
     return `${label.trim()}: ${Math.round(parseFloat(num) / divideBy)}${unit.trim()}`;
   };
 
-  const renderDayLines = (lines: string[]) => {
+  const scaleIngredient = (line: string, multiplier: number): string => {
+    if (multiplier === 1) return line;
+    return line.replace(/\((\d+(?:\.\d+)?)\s*(g|kg|ml|l|oz|lb|tsp|tbsp|cups?)\)/gi, (_, num, unit) => {
+      const scaled = Math.round(parseFloat(num) * multiplier);
+      return `(${scaled}${unit})`;
+    }).replace(/\((\d+)\)/g, (_, num) => {
+      const scaled = Math.round(parseInt(num) * multiplier);
+      return `(${scaled})`;
+    });
+  };
+
+  const renderDayLines = (lines: string[], servingsMultiplier: number = 1) => {
     const result: React.ReactNode[] = [];
     let olBuffer: React.ReactNode[] = [];
     let olKey = 0;
@@ -400,7 +412,8 @@ export default function PlannerApp() {
         );
       } else if (line.startsWith("- ")) {
         flushOl();
-        result.push(<li key={i} style={{fontSize:14,margin:"3px 0",marginLeft:16,color:"#374151",lineHeight:1.5}}>{line.replace("- ","")}</li>);
+        const scaledLine = servingsMultiplier !== 1 ? scaleIngredient(line.replace("- ",""), servingsMultiplier) : line.replace("- ","");
+        result.push(<li key={i} style={{fontSize:14,margin:"3px 0",marginLeft:16,color:"#374151",lineHeight:1.5}}>{scaledLine}</li>);
       } else if (line.match(/^\d+\. /)) {
         olBuffer.push(<li key={i} style={{fontSize:14,margin:"4px 0",color:"#374151",lineHeight:1.55}}>{line.replace(/^\d+\. /,"")}</li>);
       } else if (line.trim()==="") {
@@ -903,7 +916,25 @@ export default function PlannerApp() {
                           <button onClick={()=>setDeletedDays(p=>{const n={...p};delete n[day.name];return n;})} className="no-print" style={{marginTop:10,fontSize:12,padding:"5px 14px",borderRadius:100,border:"1px solid #E5E7EB",background:"white",color:"#22C55E",cursor:"pointer"}}>restore meal</button>
                         </div>
                       ) : (
-                        <div style={{padding:"12px 14px"}}>{renderDayLines(day.lines)}</div>
+                        <div>
+                          <div style={{padding:"12px 14px"}}>{renderDayLines(day.lines, (dayServings[day.name]||totalPeople) / totalPeople)}</div>
+                          <div className="no-print" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderTop:"1px solid #F3F4F6",background:"#FAFAFA",gap:10,flexWrap:"wrap"}}>
+                            <a href={`https://www.google.com/search?q=${encodeURIComponent(mealName + " recipe")}`} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:"#22C55E",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:4}}>
+                              🔍 Find similar recipes ↗
+                            </a>
+                            <div style={{display:"flex",alignItems:"center",gap:8}}>
+                              <span style={{fontSize:11,color:"#888",fontWeight:500}}>👥 Portions:</span>
+                              <button onClick={()=>setDayServings(p=>({...p,[day.name]:Math.max(1,(p[day.name]||totalPeople)-1)}))} style={{width:24,height:24,borderRadius:"50%",border:"1px solid #E5E7EB",background:"white",cursor:"pointer",fontSize:14,color:"#22C55E",fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}>−</button>
+                              <span style={{fontSize:13,fontWeight:700,color:"#14532D",minWidth:20,textAlign:"center"}}>{dayServings[day.name]||totalPeople}</span>
+                              <button onClick={()=>setDayServings(p=>({...p,[day.name]:(p[day.name]||totalPeople)+1}))} style={{width:24,height:24,borderRadius:"50%",border:"1px solid #E5E7EB",background:"white",cursor:"pointer",fontSize:14,color:"#22C55E",fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}>+</button>
+                              {(dayServings[day.name]||totalPeople) !== totalPeople && (
+                                <span style={{fontSize:10,color:"#F59E0B",fontWeight:600}}>
+                                  {(dayServings[day.name]||totalPeople) < totalPeople ? "⬇ scaled down" : "⬆ scaled up"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   );
