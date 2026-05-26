@@ -93,7 +93,7 @@ export default function Home() {
       ],
     buttonText: "Sign up to a Free Account Now",
       buttonStyle: "outline",
-    buttonText: "Sign up to Premium Plus Now",
+    buttonText: "Sign up to a Free Account Now",
     },
     {
       name: "PREMIUM",
