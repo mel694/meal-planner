@@ -2,6 +2,28 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Simple in-memory rate limiter: max 10 requests per IP per minute
+const rateLimitMap = new Map();
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60 * 1000;
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, resetAt: now + RATE_WINDOW_MS };
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + RATE_WINDOW_MS;
+  }
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+  if (rateLimitMap.size > 1000) {
+    for (const [key, val] of rateLimitMap.entries()) {
+      if (now > val.resetAt) rateLimitMap.delete(key);
+    }
+  }
+  return entry.count > RATE_LIMIT;
+}
+
 const GOAL_PROMPTS = {
   balanced: "",
   highprotein: "IMPORTANT: Every meal MUST be high in protein (at least 35g per serving). Prioritise chicken, turkey, fish, eggs, Greek yogurt, legumes and lean meats. Include protein content prominently in each meal.",
@@ -13,6 +35,13 @@ const GOAL_PROMPTS = {
 
 export async function POST(request) {
   try {
+    // Rate limiting
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+               request.headers.get("x-real-ip") || "unknown";
+    if (isRateLimited(ip)) {
+      return Response.json({ error: "Too many requests. Please wait a minute and try again." }, { status: 429 });
+    }
+
     const body = await request.json();
     const { adults, children, likes, dislikes, dietary, cookingTime, budget, swapDay, currentPlan, fridgePhotos, action, swapStyle, swapProtein, mealGoal, ingredients } = body;
 

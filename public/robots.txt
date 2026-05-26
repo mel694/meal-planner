@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /app
+Allow: /privacy-policy
+Allow: /cookie-policy
+Allow: /terms
+Disallow: /account
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /api/
+
+Sitemap: https://www.sevendinners.co.uk/sitemap.xml
