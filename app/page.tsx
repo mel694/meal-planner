@@ -25,28 +25,6 @@ const Logo = ({ size = 44 }: { size?: number }) => (
 
 export default function Home() {
   const { user, isSignedIn } = useUser();
-  const [checkoutLoading, setCheckoutLoading] = React.useState(null);
-
-  const handleCheckout = async (plan) => {
-    if (!isSignedIn) {
-      window.location.href = "/sign-up?redirect=/";
-      return;
-    }
-    setCheckoutLoading(plan);
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch (err) {
-      console.error("Checkout error:", err);
-    } finally {
-      setCheckoutLoading(null);
-    }
-  };
   const [cookieAccepted, setCookieAccepted] = React.useState(true);
   React.useEffect(() => {
     const accepted = localStorage.getItem("sd_cookie_consent");
@@ -91,9 +69,9 @@ export default function Home() {
         "Access to free recipes",
         "Community support",
       ],
-    buttonText: "Sign up to a Free Account Now",
+      buttonText: "Get Started Free",
       buttonStyle: "outline",
-    buttonText: "Sign up to a Free Account Now",
+      href: "/app",
     },
     {
       name: "PREMIUM",
@@ -115,7 +93,7 @@ export default function Home() {
         "Allergy filtering",
         "Priority support",
       ],
-    buttonText: "Sign up to Premium Now",
+      buttonText: "Start 30 Day Free Trial",
       buttonStyle: "filled",
       href: "#signup",
     },
@@ -137,7 +115,7 @@ export default function Home() {
         "Advanced goal tracking",
         "Priority support",
       ],
-    buttonText: "Sign up to Premium Plus Now",
+      buttonText: "Start 30 Day Free Trial",
       buttonStyle: "outline-green",
       href: "#signup",
     },
@@ -191,13 +169,10 @@ export default function Home() {
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
           {isSignedIn ? (
-              <>
-            <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>💬 Feedback</Link>
             <Link href="/account" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none"}}>
               {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:22,height:22,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.5)"}}/>}
               <span>Account</span>
             </Link>
-              </>
           ) : (
             <>
               <Link href="/sign-in" style={{padding:"8px 20px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Log in</Link>
@@ -272,9 +247,9 @@ export default function Home() {
                 ))}
               </ul>
               {plan.buttonStyle==="filled" ? (
-                <button onClick={() => handleCheckout(plan.name === "PREMIUM" ? "premium" : "premiumPlus")} style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"#A855F7",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{checkoutLoading === (plan.name === "PREMIUM" ? "premium" : "premiumPlus") ? "Loading..." : plan.buttonText}</button>
+                <Link href="/sign-up" style={{display:"block",textAlign:"center",padding:"13px",background:"#A855F7",color:"white",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               ) : plan.buttonStyle==="outline-green" ? (
-                <button onClick={() => handleCheckout(plan.name === "PREMIUM" ? "premium" : "premiumPlus")} style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{checkoutLoading === (plan.name === "PREMIUM" ? "premium" : "premiumPlus") ? "Loading..." : plan.buttonText}</button>
+                <Link href="/sign-up" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               ) : (
                 <Link href="/app" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               )}
@@ -287,7 +262,7 @@ export default function Home() {
             { icon:"🔒", title:"30 day free trial", desc:"No card required" },
             { icon:"🔄", title:"Cancel anytime", desc:"No commitments" },
             { icon:"🛡️", title:"Your data is safe", desc:"Secure & private" },
-            { icon:"❤️", title:"Loved by thousands", desc:"4.9/5 from our community" },
+            { icon:"🆕", title:"Brand new", desc:"Be an early member" },
           ].map((item,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:10}}>
               <div style={{fontSize:22}}>{item.icon}</div>
@@ -336,25 +311,18 @@ export default function Home() {
       </section>
 
       <section style={{padding:"60px 32px",background:"#FAF5FF",maxWidth:1280,margin:"0 auto",borderRadius:24}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,alignItems:"center",maxWidth:1100,margin:"0 auto"}} className="testimonial-grid">
-          <div style={{position:"relative",height:280,borderRadius:20,background:"linear-gradient(135deg,#FEF3C7 0%,#FED7AA 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <div style={{fontSize:120}}>👨‍👩‍👧</div>
-          </div>
-          <div>
-            <h2 style={{fontSize:30,fontWeight:800,color:"#14532D",lineHeight:1.2,marginBottom:16,letterSpacing:"-0.5px"}}>
-              Join thousands of<br/>happy home cooks<span className="heart-doodle">♡</span>
-            </h2>
-            <p style={{fontSize:15,color:"#4B5563",lineHeight:1.6,fontStyle:"italic",marginBottom:16}}>
-              "Seven Dinners has completely changed the way I plan meals. It saves me so much time and we eat so much healthier!"
-            </p>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{display:"flex",gap:2}}>
-                {[1,2,3,4,5].map(s=>(<span key={s} style={{color:"#FBBF24",fontSize:16}}>★</span>))}
-              </div>
-              <span style={{fontSize:15,fontWeight:700,color:"#14532D"}}>4.9/5</span>
-              <span style={{fontSize:13,color:"#6B7280"}}>— Sarah, Seven Dinners member</span>
-            </div>
-          </div>
+        <div style={{textAlign:"center",maxWidth:600,margin:"0 auto"}}>
+          <div style={{fontSize:56,marginBottom:16}}>👨‍👩‍👧</div>
+          <h2 style={{fontSize:30,fontWeight:800,color:"#14532D",lineHeight:1.2,marginBottom:16,letterSpacing:"-0.5px"}}>
+            Be one of our first members<span className="heart-doodle">♡</span>
+          </h2>
+          <p style={{fontSize:16,color:"#4B5563",lineHeight:1.7,marginBottom:28}}>
+            Seven Dinners is brand new and we&apos;re looking for families who want to eat better, waste less and spend less time stressing about dinner. Try it completely free — no card required.
+          </p>
+          <a href="/app" style={{display:"inline-block",padding:"14px 32px",background:"#22C55E",color:"white",borderRadius:100,fontSize:15,fontWeight:700,textDecoration:"none",boxShadow:"0 4px 16px rgba(34,197,94,0.3)"}}>
+            Start planning for free →
+          </a>
+          <p style={{fontSize:13,color:"#9CA3AF",marginTop:12}}>Takes 30 seconds · No sign up needed to try</p>
         </div>
       </section>
 
