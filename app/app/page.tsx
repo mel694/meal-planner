@@ -933,6 +933,7 @@ export default function PlannerApp() {
               <div style={{position:"absolute",inset:0,border:"3px solid transparent",borderTopColor:"#22C55E",borderRadius:"50%",animation:"spin 0.9s linear infinite"}}/>
             </div>
             <p style={{color:"#22C55E",fontSize:14,fontWeight:600,textAlign:"center"}}>{loadingMsg}</p>
+              <p style={{color:"#6B7280",fontSize:13,textAlign:"center",marginTop:8,lineHeight:1.5}}>Your meal plan can take 90–120 seconds to build.<br/>It's worth the wait — we're crafting something delicious just for you! 🍽️</p>
           </div>
         )}
 
