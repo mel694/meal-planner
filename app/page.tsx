@@ -271,7 +271,7 @@ export default function Home() {
               {plan.buttonStyle==="filled" ? (
                 <button onClick={() => handleCheckout(plan.name === "PREMIUM" ? "premium" : "premiumPlus")} style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"#A855F7",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{checkoutLoading === (plan.name === "PREMIUM" ? "premium" : "premiumPlus") ? "Loading..." : plan.buttonText}</button>
               ) : plan.buttonStyle==="outline-green" ? (
-                <Link href="/sign-up" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
+                <button onClick={() => handleCheckout(plan.name === "PREMIUM" ? "premium" : "premiumPlus")} style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{checkoutLoading === (plan.name === "PREMIUM" ? "premium" : "premiumPlus") ? "Loading..." : plan.buttonText}</button>
               ) : (
                 <Link href="/app" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               )}
