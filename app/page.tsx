@@ -191,7 +191,9 @@ export default function Home() {
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
           {isSignedIn ? (
-            <Link href="/account" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none"}}>
+            <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>💬 Feedback</Link>
+            <
+              Link href="/account" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none"}}>
               {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:22,height:22,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.5)"}}/>}
               <span>Account</span>
             </Link>
