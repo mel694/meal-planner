@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { PLANS, PlanKey } from '@/lib/stripe';
+import { PLANS, PlanKey } from '@/lib/plans';
 
 export default function PricingPage() {
   const { isSignedIn } = useUser();
