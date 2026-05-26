@@ -93,7 +93,7 @@ export default function Home() {
       ],
       buttonText: "Get Started Free",
       buttonStyle: "outline",
-      href: "/app",
+    buttonText: "Sign up to Premium Now",
     },
     {
       name: "PREMIUM",
@@ -115,7 +115,7 @@ export default function Home() {
         "Allergy filtering",
         "Priority support",
       ],
-      buttonText: "Start 30 Day Free Trial",
+    buttonText: "Sign up to Premium Plus Now",
       buttonStyle: "filled",
       href: "#signup",
     },
