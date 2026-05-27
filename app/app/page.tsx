@@ -69,6 +69,7 @@ export default function PlannerApp() {
   const [step, setStep] = useState("prefs");
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
+  const [loadingSeconds, setLoadingSeconds] = useState(0);
   const [mealPlan, setMealPlan] = useState("");
   const [error, setError] = useState("");
   const [checked, setChecked] = useState<Record<string,boolean>>({});
@@ -280,7 +281,8 @@ export default function PlannerApp() {
   const generatePlanWithScheduled = async (overrideScheduled?: Scheduled, overrideFavourites?: Favourite[]) => {
     const useFavourites = overrideFavourites || favourites;
     const useScheduled = overrideScheduled || scheduled;
-    setLoading(true); setError(""); setMealPlan(""); setChecked({}); setDeletedDays({});
+    setLoading(true); setError(""); setMealPlan(""); setChecked({}); setDeletedDays({}); setLoadingSeconds(0);
+    const timerInterval = setInterval(() => setLoadingSeconds(s => s + 1), 1000);
     const msgs = ["Loading your scheduled meals...","Finding new recipes for the rest...","Matching to your family's tastes...","Building your seven dinners..."];
     let i = 0; setLoadingMsg(msgs[0]);
     const interval = setInterval(() => { i=(i+1)%msgs.length; setLoadingMsg(msgs[i]); }, 3000);
@@ -305,6 +307,7 @@ export default function PlannerApp() {
     } finally {
       clearInterval(interval);
       setLoading(false);
+      clearInterval(timerInterval);
     }
   };
 
@@ -953,7 +956,14 @@ export default function PlannerApp() {
               <div style={{position:"absolute",inset:0,border:"3px solid #BBF7D0",borderRadius:"50%"}}/>
               <div style={{position:"absolute",inset:0,border:"3px solid transparent",borderTopColor:"#22C55E",borderRadius:"50%",animation:"spin 0.9s linear infinite"}}/>
             </div>
-            <p style={{color:"#22C55E",fontSize:14,fontWeight:600,textAlign:"center"}}>{loadingMsg}</p>
+            <p style={{color:"#22C55E",fontSize:15,fontWeight:700,textAlign:"center"}}>{loadingMsg}</p>
+            <div style={{display:"flex",alignItems:"center",gap:8,background:"#F0FDF4",padding:"10px 20px",borderRadius:100,border:"1px solid #BBF7D0"}}>
+              <span style={{fontSize:13,color:"#6B7280"}}>⏱️</span>
+              <span style={{fontSize:13,color:"#4B5563",fontWeight:500}}>{loadingSeconds}s elapsed</span>
+            </div>
+            <p style={{fontSize:13,color:"#9CA3AF",textAlign:"center",maxWidth:260,lineHeight:1.5,margin:0}}>
+              Meal plan generation can take up to 2 minutes — but it&apos;s worth the wait! 🌟
+            </p>
           </div>
         )}
 
