@@ -539,6 +539,12 @@ export default function PlannerApp() {
           .two-col{grid-template-columns:1fr!important}
           .nav-buttons{gap:4px!important}
           .nav-buttons button{padding:6px 8px!important;font-size:11px!important}
+          .nav-text{display:inline}
+          .nav-icon-only{display:none}
+          @media(max-width:640px){
+            .nav-text{display:none!important}
+            .nav-icon-only{display:inline!important}
+          }
         }
         @media print {
           .no-print { display: none !important; }
@@ -570,7 +576,9 @@ export default function PlannerApp() {
           {step==="plan" && <button onClick={handlePrint} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>}
           {step==="plan" && <button onClick={downloadCalendar} style={{background:"#EFF6FF",color:"#1D4ED8",border:"1px solid #BFDBFE",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>📅 Calendar</button>}
           {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"white",color:"#6B7280",border:"1px solid #E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
-          <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>💬 Feedback</Link>
+          <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
+            💬<span className="nav-text" style={{marginLeft:4}}>Feedback</span>
+          </Link>
           {isSignedIn ? (
             <Link href="/account" style={{background:"#22C55E",color:"white",border:"none",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
               {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:20,height:20,borderRadius:"50%"}}/>}
