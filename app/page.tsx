@@ -78,7 +78,7 @@ export default function Home() {
       tagline: "Everything you need",
       price: "£5.99",
       period: "/month",
-      subprice: "30 day free trial",
+      subprice: "Billed monthly",
       icon: "👨‍🍳",
       iconBg: "#F3E8FF",
       iconColor: "#A855F7",
@@ -93,7 +93,7 @@ export default function Home() {
         "Allergy filtering",
         "Priority support",
       ],
-      buttonText: "Start 30 Day Free Trial",
+      buttonText: "Sign Up Today",
       buttonStyle: "filled",
       href: "#signup",
     },
@@ -102,7 +102,7 @@ export default function Home() {
       tagline: "AI nutrition coach",
       price: "£10.99",
       period: "/month",
-      subprice: "30 day free trial",
+      subprice: "Billed monthly",
       icon: "⭐",
       iconBg: "#DCFCE7",
       iconColor: "#22C55E",
@@ -115,7 +115,7 @@ export default function Home() {
         "Advanced goal tracking",
         "Priority support",
       ],
-      buttonText: "Start 30 Day Free Trial",
+      buttonText: "Sign Up Today",
       buttonStyle: "outline-green",
       href: "#signup",
     },
@@ -208,11 +208,7 @@ export default function Home() {
           <div style={{position:"relative",width:380,height:380,borderRadius:"50%",background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:"0 20px 60px rgba(34,197,94,0.15)"}}>
             <div style={{fontSize:140,animation:"float 4s ease-in-out infinite"}}>🥗</div>
           </div>
-          <div style={{position:"absolute",top:60,left:20,background:"#FEF3C7",borderRadius:"50%",padding:"12px 18px",fontSize:13,fontWeight:700,color:"#92400E",boxShadow:"0 4px 12px rgba(0,0,0,0.08)",transform:"rotate(-8deg)"}}>
-            30 DAY<br/>
-            <span style={{fontSize:11,fontWeight:600}}>FREE TRIAL</span><br/>
-            <span style={{fontSize:10,fontWeight:600}}>ON ALL PLANS</span>
-          </div>
+
           <div style={{position:"absolute",top:30,right:50,color:"#A855F7",fontSize:24}}>✨</div>
           <div style={{position:"absolute",bottom:60,right:30,color:"#A855F7",fontSize:32}}>♡</div>
         </div>
@@ -261,7 +257,7 @@ export default function Home() {
 
         <div style={{marginTop:32,padding:"20px 24px",background:"#F9FAFB",borderRadius:16,display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:16}} className="trust-grid">
           {[
-            { icon:"🔒", title:"30 day free trial", desc:"No card required" },
+            { icon:"🔒", title:"Billed monthly", desc:"No card required" },
             { icon:"🔄", title:"Cancel anytime", desc:"No commitments" },
             { icon:"🛡️", title:"Your data is safe", desc:"Secure & private" },
             { icon:"🆕", title:"Brand new", desc:"Be an early member" },
