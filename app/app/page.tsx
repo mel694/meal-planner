@@ -570,14 +570,12 @@ export default function PlannerApp() {
           {step==="plan" && <button onClick={handlePrint} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>}
           {step==="plan" && <button onClick={downloadCalendar} style={{background:"#EFF6FF",color:"#1D4ED8",border:"1px solid #BFDBFE",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>📅 Calendar</button>}
           {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"white",color:"#6B7280",border:"1px solid #E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
+          <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>💬 Feedback</Link>
           {isSignedIn ? (
-              <>
-                <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>💬 Feedback</Link>
             <Link href="/account" style={{background:"#22C55E",color:"white",border:"none",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
               {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:20,height:20,borderRadius:"50%"}}/>}
               Account
             </Link>
-              </>
           ) : (
             <Link href="/sign-in" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,fontWeight:600,textDecoration:"none"}}>Log in</Link>
           )}
@@ -936,7 +934,6 @@ export default function PlannerApp() {
               <div style={{position:"absolute",inset:0,border:"3px solid transparent",borderTopColor:"#22C55E",borderRadius:"50%",animation:"spin 0.9s linear infinite"}}/>
             </div>
             <p style={{color:"#22C55E",fontSize:14,fontWeight:600,textAlign:"center"}}>{loadingMsg}</p>
-              <p style={{color:"#6B7280",fontSize:13,textAlign:"center",marginTop:8,lineHeight:1.5}}>Your meal plan can take 90–120 seconds to build.<br/>It's worth the wait — we're crafting something delicious just for you! 🍽️</p>
           </div>
         )}
 
