@@ -57,15 +57,15 @@ export default function BlogPost2() {
 
           <p>I should say upfront that I am not a developer. I have never been a developer. In fact, about thirty years ago at university, I lasted precisely two weeks in the Computer Science module before rapidly and decisively opting out. It became very clear, very quickly, that this was not my natural territory. I am a Chartered Accountant. I work in business advisory. I love spreadsheets and strategy and a well-structured process. But actual code? Not my thing. Or so I thought.</p>
 
-          <p>Fast forward to 2025, and I had been playing around with Claude, Anthropic's AI. I am a self-confessed tech geek in the sense that I love exploring new tools, especially ones that solve real problems. I had already used AI for all sorts of things in my work and personal life, and I was curious about how far I could push it.</p>
+          <p>Fast forward to 2026, and I had been playing around with Claude, Anthropic's AI. I am a self-confessed tech geek in the sense that I love exploring new tools, especially ones that solve real problems. I had already used AI for all sorts of things in my work and personal life, and I was curious about how far I could push it.</p>
 
-          <p>So one evening, half out of curiosity and half out of sheer desperation with the Sunday dinner planning problem I described in my last post, I typed something along the lines of: "Can you set up an AI agent that runs every week and sends me an email with seven healthy recipes and a shopping list at the bottom?"</p>
+          <p>So one evening, half out of curiosity and half out of sheer desperation with the Sunday dinner planning problem I described in my last post, I prompted Claude to send me an email each week with a meal planner.</p>
 
           <p>And it worked.</p>
 
           <p>Every Sunday, I started getting an email with a full week of meals, shopping list included. I was absolutely delighted. I am not going to pretend it was perfect from the start, there was a lot of tweaking the prompts, a lot of "can you make the recipes faster" and "we don't eat pork" and "can you add the macros". But the core idea worked immediately, and I was hooked.</p>
 
-          <p>I mentioned it to a couple of friends at school pickup one day. Casually. "Oh I've been using this AI thing that plans all my meals for me." The response was immediate and enthusiastic. They all wanted it. Could I set it up for them too? Could it be a website so they could use it themselves? Could I add their dietary preferences?</p>
+          <p>I mentioned it to a couple of friends one day. Casually. "Oh I've been using this AI thing that plans all my meals for me." The response was immediate and enthusiastic. They all wanted it. Could I set it up for them too? Could it be a website so they could use it themselves? Could I add their dietary preferences?</p>
 
           <p>I thought: why not? It was a bit of a project, something to get my teeth into. I genuinely love learning new things, and if it helped a few more people eat better, even better.</p>
 
