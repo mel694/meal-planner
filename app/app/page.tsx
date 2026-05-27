@@ -728,11 +728,48 @@ export default function PlannerApp() {
                 <span style={{background:"linear-gradient(135deg,#F59E0B,#EF4444)",color:"white",fontSize:10,fontWeight:800,padding:"4px 10px",borderRadius:100,letterSpacing:"0.03em"}}>✨ AI MAGIC</span>
               </div>
 
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+              {/* Big upload zone - shown when no photos yet */}
+              {fridgePhotos.length === 0 && (
+                <label style={{display:"block",width:"100%",padding:"20px 16px",background:"white",border:"3px dashed #F59E0B",borderRadius:14,textAlign:"center",cursor:"pointer",marginBottom:12,transition:"background 0.2s"}}>
+                  <div style={{fontSize:40,marginBottom:8}}>📷</div>
+                  <div style={{fontSize:15,fontWeight:800,color:"#92400E",marginBottom:4}}>Tap here to photo your fridge</div>
+                  <div style={{fontSize:12,color:"#B45309",fontWeight:500}}>Take a photo or upload from your camera roll</div>
+                  <div style={{fontSize:11,color:"#D97706",marginTop:6,opacity:0.8}}>JPG · PNG · HEIC supported · up to 3 photos</div>
+                  <input type="file" accept="image/*,.heic,.heif" multiple onChange={handlePhotoUpload} style={{display:"none"}}/>
+                </label>
+              )}
+
+              {/* Photos preview + add more */}
+              {fridgePhotos.length > 0 && (
+                <div style={{marginBottom:12}}>
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+                    {fridgePhotos.map((photo, idx) => (
+                      <div key={idx} style={{position:"relative",width:72,height:72,borderRadius:10,overflow:"hidden",border:"2px solid white",boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
+                        <img src={photo.preview} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                        <button onClick={()=>{setFridgePhotos(prev=>prev.filter((_,i)=>i!==idx));setAlreadyHave("")}} style={{position:"absolute",top:2,right:2,width:20,height:20,borderRadius:"50%",border:"none",background:"rgba(0,0,0,0.7)",color:"white",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+                      </div>
+                    ))}
+                    {fridgePhotos.length < 3 && (
+                      <label style={{width:72,height:72,borderRadius:10,border:"2px dashed #F59E0B",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:11,color:"#B45309",fontWeight:600,gap:2}}>
+                        <span style={{fontSize:20}}>➕</span>
+                        <span>Add</span>
+                        <input type="file" accept="image/*,.heic,.heif" multiple onChange={handlePhotoUpload} style={{display:"none"}}/>
+                      </label>
+                    )}
+                  </div>
+                  {!alreadyHave && (
+                    <button onClick={analyseFridge} disabled={analysing} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#F59E0B,#F97316)",color:"white",border:"none",borderRadius:10,fontSize:14,cursor:"pointer",fontWeight:800,opacity:analysing?0.7:1,boxShadow:"0 4px 12px rgba(245,158,11,0.4)"}}>
+                      {analysing ? "🔍 AI is scanning your fridge..." : "✨ Scan with AI"}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:4}}>
                 {[
-                  { icon:"🍳", title:"Cook right now", desc:"Get a recipe from what's in your fridge in seconds" },
-                  { icon:"♻️", title:"Reduce food waste", desc:"Use up ingredients before they go off" },
-                  { icon:"🛒", title:"Skip what you have", desc:"We won't add these to your shopping list" },
+                  { icon:"🍳", title:"Cook right now", desc:"Get a recipe in seconds" },
+                  { icon:"♻️", title:"Reduce waste", desc:"Use up ingredients before they go off" },
+                  { icon:"🛒", title:"Skip what you have", desc:"Won't appear on your shopping list" },
                 ].map((item,i) => (
                   <div key={i} style={{background:"white",borderRadius:10,padding:"10px 8px",textAlign:"center",border:"1px solid #FCD34D"}}>
                     <div style={{fontSize:20,marginBottom:4}}>{item.icon}</div>
@@ -740,31 +777,6 @@ export default function PlannerApp() {
                     <div style={{fontSize:10,color:"#B45309",lineHeight:1.3}}>{item.desc}</div>
                   </div>
                 ))}
-              </div>
-
-              {fridgePhotos.length > 0 && (
-                <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
-                  {fridgePhotos.map((photo, idx) => (
-                    <div key={idx} style={{position:"relative",width:70,height:70,borderRadius:10,overflow:"hidden",border:"2px solid white",boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
-                      <img src={photo.preview} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                      <button onClick={()=>{setFridgePhotos(prev=>prev.filter((_,i)=>i!==idx));setAlreadyHave("")}} style={{position:"absolute",top:2,right:2,width:20,height:20,borderRadius:"50%",border:"none",background:"rgba(0,0,0,0.7)",color:"white",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {fridgePhotos.length < 3 && (
-                  <label style={{flex:1,minWidth:140,padding:"11px 14px",background:"white",border:"2px dashed #F59E0B",borderRadius:10,fontSize:13,color:"#92400E",cursor:"pointer",textAlign:"center",fontWeight:700}}>
-                    📷 {fridgePhotos.length === 0 ? "Take or upload a photo" : "Add another photo"}
-                    <input type="file" accept="image/*,.heic,.heif" multiple onChange={handlePhotoUpload} style={{display:"none"}}/>
-                  </label>
-                )}
-                {fridgePhotos.length > 0 && !alreadyHave && (
-                  <button onClick={analyseFridge} disabled={analysing} style={{flex:1,minWidth:140,padding:"11px 14px",background:"linear-gradient(135deg,#F59E0B,#F97316)",color:"white",border:"none",borderRadius:10,fontSize:13,cursor:"pointer",fontWeight:800,opacity:analysing?0.7:1,boxShadow:"0 4px 12px rgba(245,158,11,0.4)"}}>
-                    {analysing ? "🔍 AI is scanning your fridge..." : "✨ Scan with AI"}
-                  </button>
-                )}
               </div>
 
               {alreadyHave && (
