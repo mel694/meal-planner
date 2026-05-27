@@ -299,15 +299,15 @@ export default function PlannerApp() {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setMealPlan(data.mealPlan);
-      setStep("plan");
       trackEvent("meal_plan_generated", { cooking_style: prefs.cookingStyle, meal_goal: prefs.mealGoal, budget: prefs.budget });
     } catch (e) {
       setError("Something went wrong. Please try again.");
       setStep("prefs");
     } finally {
       clearInterval(interval);
-      setLoading(false);
       clearInterval(timerInterval);
+      setLoading(false);
+      setStep("plan");
     }
   };
 
