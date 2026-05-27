@@ -169,6 +169,7 @@ export default function Home() {
           <Link href="/blog" style={{color:"#374151",fontSize:14,fontWeight:500,textDecoration:"none"}}>Blog</Link>
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <Link href="/blog" style={{color:"#374151",fontSize:14,fontWeight:500,textDecoration:"none",marginRight:4}}>Blog</Link>
           {isSignedIn ? (
             <Link href="/account" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none"}}>
               {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:22,height:22,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.5)"}}/>}
