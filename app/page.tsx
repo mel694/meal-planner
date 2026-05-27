@@ -163,9 +163,10 @@ export default function Home() {
           </div>
         </div>
         <div style={{display:"flex",gap:32,alignItems:"center"}} className="nav-links">
-          {["How It Works","Recipes","Plans","Blog","About"].map(item=>(
+          {["How It Works","Recipes","Plans"].map(item=>(
             <a key={item} href={`#${item.toLowerCase().replace(/ /g,"-")}`} style={{color:"#374151",fontSize:14,fontWeight:500,textDecoration:"none"}}>{item}</a>
           ))}
+          <Link href="/blog" style={{color:"#374151",fontSize:14,fontWeight:500,textDecoration:"none"}}>Blog</Link>
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
           {isSignedIn ? (
