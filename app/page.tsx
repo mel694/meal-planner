@@ -177,30 +177,17 @@ export default function Home() {
 
         </div>
         <div style={{display:"flex",gap:10,alignItems:"center"}} className="nav-right">
-          <Link href="/blog" style={{color:"#374151",fontSize:13,fontWeight:500,textDecoration:"none",padding:"7px 12px",borderRadius:100,border:"1px solid #E5E7EB"}}>
-            <span className="nav-icon-only">📝</span>
-            <span className="nav-text">Blog</span>
-          </Link>
-          <Link href="/feedback" style={{color:"#374151",fontSize:13,fontWeight:500,textDecoration:"none",padding:"7px 12px",borderRadius:100,border:"1px solid #E5E7EB"}}>
-            <span className="nav-icon-only">💬</span>
-            <span className="nav-text">💬 Feedback</span>
-          </Link>
+          <Link href="/blog" style={{color:"#374151",fontSize:13,fontWeight:500,textDecoration:"none",padding:"7px 12px",borderRadius:100,border:"1px solid #E5E7EB"}}>Blog</Link>
+          <Link href="/feedback" style={{color:"#374151",fontSize:13,fontWeight:500,textDecoration:"none",padding:"7px 12px",borderRadius:100,border:"1px solid #E5E7EB"}}>💬 Feedback</Link>
           {isSignedIn ? (
             <Link href="/account" style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none"}}>
               {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:20,height:20,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.5)"}}/>}
-              <span className="nav-text">Account</span>
-              <span className="nav-icon-only">👤</span>
+              <span>Account</span>
             </Link>
           ) : (
             <>
-              <Link href="/sign-in" style={{padding:"7px 14px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>
-                <span className="nav-text">Log in</span>
-                <span className="nav-icon-only">Log in</span>
-              </Link>
-              <Link href="/sign-up" style={{padding:"7px 14px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>
-                <span className="nav-text">Sign Up</span>
-                <span className="nav-icon-only">Join</span>
-              </Link>
+              <Link href="/sign-in" style={{padding:"7px 14px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Log in</Link>
+              <Link href="/sign-up" style={{padding:"7px 14px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Sign Up</Link>
             </>
           )}
         </div>
