@@ -26,11 +26,39 @@ const Logo = () => (
 
 export default function AccountPage() {
   const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
+  const { signOut, user: clerkUser } = useClerk();
+
+  const deleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeleting(true);
+    try {
+      // Delete all user data from Supabase
+      const userId = user?.id;
+      if (userId) {
+        await supabase.from("meal_plans").delete().eq("user_id", userId);
+        await supabase.from("favourites").delete().eq("user_id", userId);
+        await supabase.from("scheduled_meals").delete().eq("user_id", userId);
+        await supabase.from("preferences").delete().eq("user_id", userId);
+        await supabase.from("profiles").delete().eq("id", userId);
+      }
+      // Delete Clerk account
+      await clerkUser?.delete();
+      // Sign out and redirect
+      await signOut();
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Delete error:", err);
+      setDeleting(false);
+      alert("Something went wrong. Please contact hello@sevendinners.co.uk to delete your account.");
+    }
+  };
   const [savedPlans, setSavedPlans] = useState<any[]>([]);
   const [favourites, setFavourites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -262,11 +290,46 @@ export default function AccountPage() {
               </div>
             </div>
 
-            <div style={{background:"white",borderRadius:16,padding:"20px",border:"1px solid #E5E7EB"}}>
-              <div style={{fontSize:15,fontWeight:700,color:"#14532D",marginBottom:12}}>Danger zone</div>
-              <button onClick={()=>signOut()} style={{width:"100%",padding:"12px",background:"white",color:"#DC2626",border:"2px solid #FECACA",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}}>
+            <div style={{background:"white",borderRadius:16,padding:"20px",border:"1px solid #E5E7EB"}}> 
+              <div style={{fontSize:15,fontWeight:700,color:"#14532D",marginBottom:12}}>Account actions</div>
+              <button onClick={()=>signOut()} style={{width:"100%",padding:"12px",background:"#F9FAFB",color:"#374151",border:"1px solid #E5E7EB",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8}}>
                 Sign out
               </button>
+            </div>
+
+            <div style={{background:"#FFF5F5",borderRadius:16,padding:"20px",border:"2px solid #FECACA"}}>
+              <div style={{fontSize:15,fontWeight:700,color:"#DC2626",marginBottom:4}}>⚠️ Danger zone</div>
+              <p style={{fontSize:13,color:"#6B7280",marginBottom:12,lineHeight:1.5}}>Permanently deletes your account and all your data including meal plans, favourites and preferences. This cannot be undone.</p>
+              {!showDeleteConfirm ? (
+                <button onClick={()=>setShowDeleteConfirm(true)} style={{width:"100%",padding:"12px",background:"white",color:"#DC2626",border:"2px solid #FECACA",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}}>
+                  🗑️ Delete my account
+                </button>
+              ) : (
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  <div style={{padding:"12px 14px",background:"#FEF2F2",borderRadius:10,border:"1px solid #FECACA"}}>
+                    <div style={{fontSize:13,fontWeight:600,color:"#DC2626",marginBottom:8}}>Are you absolutely sure? Type DELETE to confirm:</div>
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={e=>setDeleteConfirmText(e.target.value)}
+                      placeholder="Type DELETE here"
+                      style={{width:"100%",padding:"10px 12px",border:"2px solid #FECACA",borderRadius:8,fontSize:14,color:"#374151",outline:"none",boxSizing:"border-box"}}
+                    />
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    <button onClick={()=>{setShowDeleteConfirm(false);setDeleteConfirmText("")}} style={{padding:"11px",background:"white",color:"#6B7280",border:"1px solid #E5E7EB",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer"}}>
+                      Cancel
+                    </button>
+                    <button
+                      onClick={deleteAccount}
+                      disabled={deleteConfirmText !== "DELETE" || deleting}
+                      style={{padding:"11px",background:deleteConfirmText==="DELETE"?"#DC2626":"#FCA5A5",color:"white",border:"none",borderRadius:10,fontSize:13,fontWeight:700,cursor:deleteConfirmText==="DELETE"?"pointer":"not-allowed",opacity:deleting?0.7:1}}
+                    >
+                      {deleting ? "Deleting..." : "Yes, delete everything"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
