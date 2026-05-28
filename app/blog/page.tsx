@@ -67,6 +67,24 @@ const posts = [
     emoji: "💪",
     bg: "#FEE2E2",
   },
+  {
+    slug: "the-moment-i-realised-ai-is-not-free",
+    title: "The Moment I Realised AI Is Not Free",
+    subtitle: "A panic-inducing email, a very fast lesson in API costs, and a complete rethink of the pricing strategy",
+    date: "May 2026",
+    readTime: "4 min read",
+    emoji: "😱",
+    bg: "#FEF2F2",
+  },
+  {
+    slug: "why-software-breaks-at-the-worst-moment",
+    title: "Why Software Breaks at the Worst Moment",
+    subtitle: "Everything worked perfectly last night. This morning, nothing. A lesson in why you have to test constantly",
+    date: "May 2026",
+    readTime: "4 min read",
+    emoji: "🔧",
+    bg: "#F5F3FF",
+  },
 ];
 
 export default function BlogIndex() {
