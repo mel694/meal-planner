@@ -30,6 +30,28 @@ export default function Home() {
     const accepted = localStorage.getItem("sd_cookie_consent");
     if (!accepted) setCookieAccepted(false);
   }, []);
+  const handleCheckout = async (plan: string) => {
+    if (!isSignedIn) {
+      window.location.href = '/sign-up';
+      return;
+    }
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      alert('Something went wrong. Please try again.');
+    }
+  };
+
   const acceptCookies = () => {
     localStorage.setItem("sd_cookie_consent", "true");
     setCookieAccepted(true);
@@ -254,9 +276,9 @@ export default function Home() {
                 ))}
               </ul>
               {plan.buttonStyle==="filled" ? (
-                <Link href="/sign-up" style={{display:"block",textAlign:"center",padding:"13px",background:"#A855F7",color:"white",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
+                <button onClick={()=>handleCheckout('premiumPlus')} style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"#A855F7",color:"white",borderRadius:10,fontSize:14,fontWeight:700,border:"none",cursor:"pointer"}}>{plan.buttonText}</button>
               ) : plan.buttonStyle==="outline-green" ? (
-                <Link href="/sign-up" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
+                <button onClick={()=>handleCheckout('premium')} style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>{plan.buttonText}</button>
               ) : (
                 <Link href="/app" style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               )}
