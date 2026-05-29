@@ -236,12 +236,24 @@ export default function Home() {
 
         <div className="hero-image" style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:420}}>
           <div style={{position:"absolute",inset:0,background:"radial-gradient(circle at 60% 50%, #DCFCE7 0%, transparent 60%)"}}/>
-          <div style={{position:"relative",width:380,height:380,borderRadius:"50%",background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",boxShadow:"0 20px 60px rgba(34,197,94,0.15)"}}>
-            <div style={{fontSize:140,animation:"float 4s ease-in-out infinite"}}>🥗</div>
+          <div style={{position:"relative",width:400,height:400,borderRadius:24,overflow:"hidden",boxShadow:"0 20px 60px rgba(34,197,94,0.2)"}}>
+            <img src="/images/hero-food.jpg" alt="Healthy home cooked family dinner" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg,transparent 60%,rgba(20,83,45,0.3) 100%)"}}/>
           </div>
-
-          <div style={{position:"absolute",top:30,right:50,color:"#A855F7",fontSize:24}}>✨</div>
-          <div style={{position:"absolute",bottom:60,right:30,color:"#A855F7",fontSize:32}}>♡</div>
+          <div style={{position:"absolute",top:20,right:40,background:"white",borderRadius:14,padding:"10px 16px",boxShadow:"0 4px 16px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:20}}>✨</span>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:"#14532D"}}>AI Generated</div>
+              <div style={{fontSize:10,color:"#6B7280"}}>Just for your family</div>
+            </div>
+          </div>
+          <div style={{position:"absolute",bottom:40,right:20,background:"white",borderRadius:14,padding:"10px 16px",boxShadow:"0 4px 16px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:20}}>🛒</span>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:"#14532D"}}>Ready to shop</div>
+              <div style={{fontSize:10,color:"#6B7280"}}>One click to Sainsbury&apos;s</div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -336,6 +348,22 @@ export default function Home() {
         </div>
         <div style={{textAlign:"center",marginTop:24}}>
           <Link href="/app" style={{color:"#22C55E",fontSize:14,fontWeight:700,textDecoration:"none"}}>Explore all recipes →</Link>
+        </div>
+      </section>
+
+      <section style={{padding:"40px 32px",maxWidth:1280,margin:"0 auto"}}>
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Real food, cooked from scratch</div>
+          <h2 style={{fontSize:28,fontWeight:800,color:"#14532D",letterSpacing:"-0.5px",margin:0}}>The kind of meals your family will actually love</h2>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,borderRadius:20,overflow:"hidden"}}>
+          <img src="/images/food-1.jpg" alt="Home cooked meal" style={{width:"100%",height:220,objectFit:"cover",display:"block"}}/>
+          <img src="/images/food-2.jpg" alt="Fresh healthy dinner" style={{width:"100%",height:220,objectFit:"cover",display:"block"}}/>
+          <img src="/images/food-3.jpg" alt="Family dinner" style={{width:"100%",height:220,objectFit:"cover",display:"block"}}/>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12,marginTop:12,borderRadius:20,overflow:"hidden"}}>
+          <img src="/images/food-4.jpg" alt="Healthy cooking" style={{width:"100%",height:180,objectFit:"cover",display:"block"}}/>
+          <img src="/images/food-5.jpg" alt="Delicious home cooking" style={{width:"100%",height:180,objectFit:"cover",display:"block"}}/>
         </div>
       </section>
 
