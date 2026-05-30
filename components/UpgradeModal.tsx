@@ -42,9 +42,18 @@ export default function UpgradeModal({ reason, onClose }: UpgradeModalProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan }),
     })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          window.location.href = "/sign-up?redirect=/pricing";
+          return null;
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data.url) window.location.href = data.url;
+        if (data?.url) window.location.href = data.url;
+      })
+      .catch(() => {
+        window.location.href = "/sign-up?redirect=/pricing";
       });
   };
 
