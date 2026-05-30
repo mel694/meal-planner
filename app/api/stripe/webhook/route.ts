@@ -5,6 +5,15 @@ import Stripe from 'stripe';
 
 async function updateUserSubscription(userId: string, data: object) {
   console.log(`Updating subscription for user ${userId}:`, data);
+  try {
+    const { clerkClient } = await import('@clerk/nextjs/server');
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(userId, {
+      publicMetadata: { subscription: data },
+    });
+  } catch (err) {
+    console.error('Failed to update Clerk metadata:', err);
+  }
 }
 
 export async function POST(req: Request) {
