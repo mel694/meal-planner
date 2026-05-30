@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { trackEvent } from "../../components/GoogleAnalytics";
+import { useSubscription } from "@/lib/useSubscription";
+import UpgradeModal from "@/components/UpgradeModal";
 
 const DIETARY_OPTIONS = ["Vegetarian","Vegan","Gluten-free","Dairy-free","Nut-free","No pork","No shellfish"];
 const TIME_OPTIONS = ["20 mins","30 mins","45 mins","1 hour","No limit"];
@@ -121,6 +123,8 @@ export default function PlannerApp() {
   }, [scheduled]);
 
   const { user, isSignedIn } = useUser();
+  const { tier, plansRemaining, canGeneratePlan, canUseFridge, canDownloadCalendar, canExportPDF, incrementUsage, FREE_PLAN_LIMIT } = useSubscription();
+  const [upgradeModal, setUpgradeModal] = useState(null);
   const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
   const totalPeople = prefs.adults + prefs.children;
 
@@ -279,6 +283,8 @@ export default function PlannerApp() {
   };
 
   const generatePlanWithScheduled = async (overrideScheduled?: Scheduled, overrideFavourites?: Favourite[]) => {
+    if (!canGeneratePlan) { setUpgradeModal("plan_limit"); return; }
+    incrementUsage();
     const useFavourites = overrideFavourites || favourites;
     const useScheduled = overrideScheduled || scheduled;
     setLoading(true); setError(""); setMealPlan(""); setChecked({}); setDeletedDays({}); setLoadingSeconds(0);
@@ -337,9 +343,10 @@ export default function PlannerApp() {
     setSwapping(null);
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => { if (!canExportPDF) { setUpgradeModal("pdf"); return; } window.print(); };
 
   const downloadCalendar = () => {
+    if (!canDownloadCalendar) { setUpgradeModal("calendar"); return; }
     if (!mealPlan) return;
     const lines = mealPlan.split("\n");
     const events: string[] = [];
@@ -564,6 +571,7 @@ export default function PlannerApp() {
         </div>
       )}
 
+      {upgradeModal && <UpgradeModal reason={upgradeModal} onClose={() => setUpgradeModal(null)} />}
       <nav className="no-print" style={{padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"white",borderBottom:"1px solid #F3F4F6",position:"sticky",top:0,zIndex:10}}>
         <Link href="/" style={{display:"flex",alignItems:"center",gap:10,textDecoration:"none"}}>
           <Logo size={38}/>
@@ -705,7 +713,13 @@ export default function PlannerApp() {
 
       <div style={{maxWidth:680,margin:"-20px auto 0",padding:"0 16px 48px",position:"relative",zIndex:1}}>
 
-        {step==="prefs" && !loading && (
+        {tier === "free" && step !== "plan" && (
+        <div style={{background:"#FEF9C3",borderBottom:"1px solid #FDE68A",padding:"8px 16px",textAlign:"center",fontSize:13,color:"#92400E"}}>
+          ⚡ Free plan: <strong>{plansRemaining} of {FREE_PLAN_LIMIT} meal plans</strong> remaining this week.{" "}
+          <a href="/pricing" style={{color:"#D97706",fontWeight:700,textDecoration:"underline"}}>Upgrade for unlimited →</a>
+        </div>
+      )}
+      {step==="prefs" && !loading && (
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
 
             {scheduledCount > 0 && (
