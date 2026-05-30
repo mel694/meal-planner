@@ -33,9 +33,11 @@ export async function POST(req: Request) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.CheckoutSession;
-        const userId = session.metadata?.userId;
-        if (!userId) break;
-        await updateUserSubscription(userId, { status: 'active' });
+        console.log('Session metadata:', JSON.stringify(session.metadata));
+        const userId = session.metadata?.userId || session.client_reference_id;
+        console.log('userId:', userId);
+        if (!userId) { console.log('No userId found'); break; }
+        await updateUserSubscription(userId, { status: 'active', plan: session.metadata?.plan });
         break;
       }
       case 'customer.subscription.deleted': {
