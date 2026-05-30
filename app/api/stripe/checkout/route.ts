@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       line_items: [{ price: selectedPlan.priceId, quantity: 1 }],
       metadata: { userId, plan },
       subscription_data: { metadata: { userId, plan } },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true&plan=${plan}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app?success=true&plan=${plan}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?cancelled=true`,
       allow_promotion_codes: true,
     });
