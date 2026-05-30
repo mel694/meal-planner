@@ -123,6 +123,12 @@ export default function PlannerApp() {
   }, [scheduled]);
 
   const { user, isSignedIn } = useUser();
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  useEffect(() => {
+    if (searchParams?.get("success") === "true") {
+      setTimeout(() => window.location.replace("/app"), 2500);
+    }
+  }, []);
   const { tier, plansRemaining, canGeneratePlan, canUseFridge, canDownloadCalendar, canExportPDF, incrementUsage, FREE_PLAN_LIMIT } = useSubscription();
   const [upgradeModal, setUpgradeModal] = useState(null);
   const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
