@@ -354,20 +354,29 @@ export default function PlannerApp() {
 
   const [planSaved, setPlanSaved] = useState(false);
   const savePlan = async () => {
-    if (!user) return;
+    if (!isSignedIn || !user) {
+      window.location.href = "/sign-up?redirect=/app";
+      return;
+    }
     try {
       const { error } = await supabase.from("meal_plans").insert({
         user_id: user.id,
         content: mealPlan,
         created_at: new Date().toISOString(),
       });
-      if (!error) {
+      if (error) {
+        console.error("Supabase save error:", error.message);
+        setSavedToast("Could not save: " + error.message);
+        setTimeout(() => setSavedToast(""), 4000);
+      } else {
         setPlanSaved(true);
-        setSavedToast("✅ Meal plan saved to your account!");
+        setSavedToast("Meal plan saved to your account!");
         setTimeout(() => setSavedToast(""), 3000);
       }
     } catch (e) {
       console.error("Save error:", e);
+      setSavedToast("Something went wrong, please try again.");
+      setTimeout(() => setSavedToast(""), 4000);
     }
   };
 
