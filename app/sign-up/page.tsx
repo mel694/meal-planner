@@ -33,10 +33,13 @@ export default function SignUpPage() {
         </div>
       </Link>
       <div style={{textAlign:"center",marginBottom:24}}>
-        <h1 style={{fontSize:26,fontWeight:800,color:"#14532D",margin:"0 0 6px",letterSpacing:"-0.5px"}}>Start your free account</h1>
-        <p style={{fontSize:14,color:"#6B7280",margin:0}}>Save your meal plans, preferences and favourites</p>
+        <div style={{background:"#22C55E",color:"white",borderRadius:100,padding:"6px 16px",fontSize:12,fontWeight:700,display:"inline-block",marginBottom:12}}>
+          🎉 14 Day Free Trial — No card required
+        </div>
+        <h1 style={{fontSize:26,fontWeight:800,color:"#14532D",margin:"0 0 6px",letterSpacing:"-0.5px"}}>Start planning better meals today</h1>
+        <p style={{fontSize:14,color:"#6B7280",margin:0}}>Get full access to every feature free for 14 days</p>
         <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:12,flexWrap:"wrap"}}>
-          {["✓ Free forever","✓ No card required","✓ Cancel anytime"].map(t => (
+          {["✓ Full Premium access","✓ No card required","✓ Cancel anytime"].map(t => (
             <span key={t} style={{fontSize:12,color:"#22C55E",fontWeight:600}}>{t}</span>
           ))}
         </div>
