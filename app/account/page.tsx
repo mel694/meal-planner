@@ -178,6 +178,7 @@ export default function AccountPage() {
   }
 
   const tabs = ["overview","meal plans","favourites","settings"];
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
   return (
     <div style={{minHeight:"100vh",background:"#F9FAFB",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -278,12 +279,27 @@ export default function AccountPage() {
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {savedPlans.map((plan,i) => (
-                  <div key={plan.id} style={{padding:"12px 14px",background:"#F9FAFB",borderRadius:10,border:"1px solid #E5E7EB",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <div>
-                      <div style={{fontSize:13,fontWeight:600,color:"#14532D"}}>Meal plan {savedPlans.length - i}</div>
-                      <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>{new Date(plan.created_at).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div>
+                  <div key={plan.id} style={{borderRadius:10,border:"1px solid #E5E7EB",overflow:"hidden"}}>
+                    <div
+                      onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
+                      style={{padding:"12px 14px",background:"#F9FAFB",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}
+                    >
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600,color:"#14532D"}}>Meal plan {savedPlans.length - i}</div>
+                        <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>{new Date(plan.created_at).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:11,color:"#22C55E",fontWeight:600,padding:"3px 10px",background:"#F0FDF4",borderRadius:100,border:"1px solid #BBF7D0"}}>saved</span>
+                        <span style={{fontSize:16,color:"#6B7280"}}>{expandedPlan === plan.id ? "▲" : "▼"}</span>
+                      </div>
                     </div>
-                    <span style={{fontSize:11,color:"#22C55E",fontWeight:600,padding:"3px 10px",background:"#F0FDF4",borderRadius:100,border:"1px solid #BBF7D0"}}>saved</span>
+                    {expandedPlan === plan.id && (
+                      <div style={{padding:"16px",background:"white",borderTop:"1px solid #E5E7EB"}}>
+                        <pre style={{fontSize:12,color:"#374151",lineHeight:1.7,whiteSpace:"pre-wrap",fontFamily:"inherit",margin:0}}>
+                          {plan.plan_text}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
