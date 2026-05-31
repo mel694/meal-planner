@@ -295,9 +295,9 @@ export default function AccountPage() {
                     </div>
                     {expandedPlan === plan.id && (
                       <div style={{padding:"16px",background:"white",borderTop:"1px solid #E5E7EB"}}>
-                        <pre style={{fontSize:12,color:"#374151",lineHeight:1.7,whiteSpace:"pre-wrap",fontFamily:"inherit",margin:0}}>
-                          {plan.plan_text}
-                        </pre>
+                        <div style={{fontSize:12,color:"#374151",lineHeight:1.7,whiteSpace:"pre-wrap",fontFamily:"inherit",margin:0}}>
+                          {plan.plan_text || "No content available"}
+                        </div>
                       </div>
                     )}
                   </div>
