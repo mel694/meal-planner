@@ -361,7 +361,7 @@ export default function PlannerApp() {
     try {
       const { error } = await supabase.from("meal_plans").insert({
         user_id: user.id,
-        content: mealPlan,
+        plan_text: mealPlan,
         created_at: new Date().toISOString(),
       });
       if (error) {
