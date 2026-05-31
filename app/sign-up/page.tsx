@@ -44,7 +44,7 @@ export default function SignUpPage() {
           ))}
         </div>
       </div>
-      <SignUp
+      <SignUp forceRedirectUrl="/app"
         appearance={{
           elements: {
             rootBox: { width: "100%", maxWidth: "420px" },
