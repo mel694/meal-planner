@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { trackEvent } from "../../components/GoogleAnalytics";
+import { supabase } from "../../lib/supabase";
 import { useSubscription } from "@/lib/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 
@@ -293,7 +294,7 @@ export default function PlannerApp() {
     incrementUsage();
     const useFavourites = overrideFavourites || favourites;
     const useScheduled = overrideScheduled || scheduled;
-    setLoading(true); setError(""); setMealPlan(""); setChecked({}); setDeletedDays({}); setLoadingSeconds(0);
+    setLoading(true); setError(""); setMealPlan(""); setChecked({}); setDeletedDays({}); setLoadingSeconds(0); setPlanSaved(false);
     const timerInterval = setInterval(() => setLoadingSeconds(s => s + 1), 1000);
     const msgs = ["Loading your scheduled meals...","Finding new recipes for the rest...","Matching to your family's tastes...","Building your seven dinners..."];
     let i = 0; setLoadingMsg(msgs[0]);
@@ -350,6 +351,25 @@ export default function PlannerApp() {
   };
 
   const handlePrint = () => { if (!canExportPDF) { setUpgradeModal("pdf"); return; } window.print(); };
+
+  const [planSaved, setPlanSaved] = useState(false);
+  const savePlan = async () => {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from("meal_plans").insert({
+        user_id: user.id,
+        content: mealPlan,
+        created_at: new Date().toISOString(),
+      });
+      if (!error) {
+        setPlanSaved(true);
+        setSavedToast("✅ Meal plan saved to your account!");
+        setTimeout(() => setSavedToast(""), 3000);
+      }
+    } catch (e) {
+      console.error("Save error:", e);
+    }
+  };
 
   const downloadCalendar = () => {
     if (!canDownloadCalendar) { setUpgradeModal("calendar"); return; }
@@ -592,6 +612,7 @@ export default function PlannerApp() {
           </button>
           {step==="plan" && <button onClick={handlePrint} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>}
           {step==="plan" && <button onClick={downloadCalendar} style={{background:"#EFF6FF",color:"#1D4ED8",border:"1px solid #BFDBFE",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>📅 Calendar</button>}
+          {step==="plan" && isSignedIn && <button onClick={savePlan} disabled={planSaved} style={{background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",border:"1px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save plan"}</button>}
           {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"white",color:"#6B7280",border:"1px solid #E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
           <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
             💬<span className="nav-text" style={{marginLeft:4}}>Feedback</span>
@@ -996,6 +1017,7 @@ export default function PlannerApp() {
                   <button onClick={handlePrint} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #22C55E",background:"#F0FDF4",color:"#22C55E",cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>
                   <button onClick={downloadCalendar} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #BFDBFE",background:"#EFF6FF",color:"#1D4ED8",cursor:"pointer",fontWeight:600}}>📅 Add to Calendar</button>
                   <button onClick={generatePlan} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #E5E7EB",background:"white",color:"#22C55E",cursor:"pointer",fontWeight:600}}>↻ new plan</button>
+                  {isSignedIn && <button onClick={savePlan} disabled={planSaved} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save"}</button>}
                 </div>
               </div>
 
