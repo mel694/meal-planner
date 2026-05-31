@@ -130,7 +130,17 @@ export default function PlannerApp() {
       setTimeout(() => window.location.replace("/app"), 2500);
     }
   }, []);
-  const { tier, plansRemaining, canGeneratePlan, canUseFridge, canDownloadCalendar, canExportPDF, incrementUsage, FREE_PLAN_LIMIT } = useSubscription();
+  const { tier, plansRemaining, trialDaysRemaining, canGeneratePlan, canUseFridge, canDownloadCalendar, canExportPDF, incrementUsage, FREE_PLAN_LIMIT } = useSubscription();
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      const metadata = user.publicMetadata as { trialStartDate?: string; subscription?: { status?: string } };
+        fetch("/api/start-trial", { method: "POST" })
+          .then(() => user.reload())
+          .catch(console.error);
+      }
+    }
+  }, [isSignedIn, user]);
   const [upgradeModal, setUpgradeModal] = useState(null);
   const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
   const totalPeople = prefs.adults + prefs.children;
