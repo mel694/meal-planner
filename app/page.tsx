@@ -93,7 +93,7 @@ export default function Home() {
       ],
       buttonText: "Get Started Free",
       buttonStyle: "outline",
-      href: "/app",
+      href: "/sign-up",
     },
     {
       name: "PREMIUM",
