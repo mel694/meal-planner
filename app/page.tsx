@@ -225,7 +225,7 @@ export default function Home() {
           <p style={{fontSize:17,color:"#4B5563",lineHeight:1.6,margin:"20px 0 28px",maxWidth:480}}>
             AI meal planning, smart shopping lists and delicious recipes — all in one place.
           </p>
-          <Link href="/app" style={{display:"inline-block",padding:"16px 36px",background:"#22C55E",color:"white",borderRadius:12,fontSize:16,fontWeight:700,textDecoration:"none",boxShadow:"0 8px 20px rgba(34,197,94,0.3)"}}>
+          <Link href="/sign-up" style={{display:"inline-block",padding:"16px 36px",background:"#22C55E",color:"white",borderRadius:12,fontSize:16,fontWeight:700,textDecoration:"none",boxShadow:"0 8px 20px rgba(34,197,94,0.3)"}}>
             Start Your Free Plan
           </Link>
           <div style={{marginTop:14,fontSize:13,color:"#6B7280",display:"flex",alignItems:"center",gap:6}}>
