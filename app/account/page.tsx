@@ -161,7 +161,7 @@ export default function AccountPage() {
             {[
               { icon:"📅", label:"Meal plans saved", value:savedPlans.length },
               { icon:"⭐", label:"Favourite recipes", value:favourites.length },
-              { icon:"🥗", label:"Account type", value:"Free" },
+              { icon:"🥗", label:"Account type", value:(user?.publicMetadata as any)?.subscription?.status === "active" ? ((user?.publicMetadata as any)?.subscription?.plan === "premiumPlus" ? "Premium Plus" : "Premium") : "Free" },
             ].map((stat,i) => (
               <div key={i} style={{background:"white",borderRadius:14,padding:"16px",textAlign:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #E5E7EB"}}>
                 <div style={{fontSize:24,marginBottom:4}}>{stat.icon}</div>
@@ -352,7 +352,7 @@ export default function AccountPage() {
                 <div style={{padding:"12px 14px",background:"#F9FAFB",borderRadius:10,border:"1px solid #E5E7EB"}}>
                   <div style={{fontSize:11,color:"#6B7280",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>Plan</div>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <div style={{fontSize:14,fontWeight:600,color:"#14532D"}}>Free</div>
+                    <div style={{fontSize:14,fontWeight:600,color:"#14532D"}}>{(user?.publicMetadata as any)?.subscription?.status === "active" ? ((user?.publicMetadata as any)?.subscription?.plan === "premiumPlus" ? "Premium Plus" : "Premium") : "Free"}</div>
                     <span style={{fontSize:11,padding:"3px 10px",background:"#F0FDF4",color:"#22C55E",borderRadius:100,fontWeight:600,border:"1px solid #BBF7D0"}}>active</span>
                   </div>
                 </div>
