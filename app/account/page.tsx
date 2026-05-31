@@ -60,6 +60,20 @@ export default function AccountPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
+  const [deletingPlan, setDeletingPlan] = useState<string | null>(null);
+
+  const deletePlan = async (planId: string) => {
+    setDeletingPlan(planId);
+    try {
+      await supabase.from("meal_plans").delete().eq("id", planId);
+      setSavedPlans(prev => prev.filter(p => p.id !== planId));
+      setExpandedPlan(null);
+    } catch (e) {
+      console.error("Delete error:", e);
+    } finally {
+      setDeletingPlan(null);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -246,9 +260,26 @@ export default function AccountPage() {
                     </div>
                     {expandedPlan === plan.id && (
                       <div style={{padding:"16px",background:"white",borderTop:"1px solid #E5E7EB"}}>
-                        <pre style={{fontSize:12,color:"#374151",lineHeight:1.7,whiteSpace:"pre-wrap",fontFamily:"inherit",margin:0}}>
-                          {plan.plan_text}
-                        </pre>
+                        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
+                          {(plan.plan_text || "").split("##").filter(Boolean).map((section: string, idx: number) => {
+                            const lines = section.trim().split("\n").filter(Boolean);
+                            const title = lines[0];
+                            const body = lines.slice(1).join("\n");
+                            return (
+                              <div key={idx} style={{background:"#F9FAFB",borderRadius:10,padding:"12px 14px",border:"1px solid #E5E7EB"}}>
+                                <div style={{fontSize:13,fontWeight:700,color:"#14532D",marginBottom:6}}>🍽️ {title}</div>
+                                <div style={{fontSize:12,color:"#4B5563",lineHeight:1.7,whiteSpace:"pre-wrap"}}>{body}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={() => deletePlan(plan.id)}
+                          disabled={deletingPlan === plan.id}
+                          style={{width:"100%",padding:"10px",background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer"}}
+                        >
+                          {deletingPlan === plan.id ? "Deleting..." : "🗑️ Delete this meal plan"}
+                        </button>
                       </div>
                     )}
                   </div>
