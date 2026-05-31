@@ -261,7 +261,7 @@ export default function AccountPage() {
                     {expandedPlan === plan.id && (
                       <div style={{padding:"16px",background:"white",borderTop:"1px solid #E5E7EB"}}>
                         <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
-                          {(plan.plan_text || "").split("##").filter((s: string) => !s.toLowerCase().includes("shopping list")).map((section: string, idx: number) => {
+                          {(plan.plan_text || "").split("##").filter((s: string) => !s.toUpperCase().includes("SHOPPING")).map((section: string, idx: number) => {
                             const lines = section.trim().split("\n").filter(Boolean);
                             const title = lines[0];
                             const body = lines.slice(1).join("\n");
