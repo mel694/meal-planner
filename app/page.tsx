@@ -98,7 +98,7 @@ export default function Home() {
     {
       name: "PREMIUM",
       tagline: "Everything you need",
-      price: "£5.99",
+      price: "£7.99",
       period: "/month",
       subprice: "Billed monthly",
       icon: "👨‍🍳",
@@ -121,8 +121,8 @@ export default function Home() {
     },
     {
       name: "PREMIUM PLUS",
-      tagline: "AI nutrition coach",
-      price: "£10.99",
+      tagline: "AI nutrition coach — coming soon",
+      price: "£12.99",
       period: "/month",
       subprice: "Billed monthly",
       icon: "⭐",
@@ -137,7 +137,7 @@ export default function Home() {
         "Advanced goal tracking",
         "Priority support",
       ],
-      buttonText: "Sign Up Today",
+      buttonText: "Currently in Development",
       buttonStyle: "outline-green",
       href: "#signup",
     },
