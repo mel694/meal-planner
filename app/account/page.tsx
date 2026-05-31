@@ -24,73 +24,6 @@ const Logo = () => (
   </svg>
 );
 
-
-function SubscriptionStatus() {
-  const { user } = useUser();
-  const metadata = user?.publicMetadata as { subscription?: { status?: string; plan?: string } } | undefined;
-  const sub = metadata?.subscription;
-  const isActive = sub?.status === "active";
-  const plan = sub?.plan;
-
-  const handleUpgrade = async (planKey: string) => {
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: planKey }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-  };
-
-  if (isActive) {
-    return (
-      <div style={{background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",borderRadius:16,padding:"20px",border:"1px solid #BBF7D0"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
-          <span style={{fontSize:28}}>✅</span>
-          <div>
-            <div style={{fontSize:15,fontWeight:700,color:"#14532D"}}>
-              {plan === "premiumPlus" ? "Premium Plus" : "Premium"} — Active
-            </div>
-            <div style={{fontSize:12,color:"#16A34A"}}>
-              {plan === "premiumPlus" ? "£12.99/month" : "£7.99/month"} · All features unlocked
-            </div>
-          </div>
-        </div>
-        <div style={{fontSize:13,color:"#15803D"}}>
-          Thank you for subscribing! Enjoy unlimited meal planning. 🎉
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{background:"linear-gradient(135deg,#F3E8FF 0%,#EDE9FE 100%)",borderRadius:16,padding:"20px",border:"1px solid #D8B4FE"}}>
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-        <span style={{fontSize:28}}>⭐</span>
-        <div>
-          <div style={{fontSize:15,fontWeight:700,color:"#6B21A8"}}>Upgrade to Premium</div>
-          <div style={{fontSize:12,color:"#9333EA"}}>From £7.99/month · Cancel anytime</div>
-        </div>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
-        {["Unlimited AI meal planning","Fridge scanning","Calendar download","PDF export","Priority support"].map(f=>(
-          <div key={f} style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#6B21A8"}}>
-            <span style={{color:"#22C55E",fontWeight:700}}>✓</span>{f}
-          </div>
-        ))}
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        <button onClick={() => handleUpgrade("premium")} style={{width:"100%",padding:"12px",background:"#A855F7",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-          Upgrade to Premium — £7.99/month
-        </button>
-        <button onClick={() => handleUpgrade("premiumPlus")} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#7C3AED,#A855F7)",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-          Upgrade to Premium Plus — £12.99/month
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function AccountPage() {
   const { user, isLoaded } = useUser();
   const { signOut, user: clerkUser } = useClerk();
@@ -262,7 +195,25 @@ export default function AccountPage() {
               </div>
             </div>
 
-            <SubscriptionStatus />
+            <div style={{background:"linear-gradient(135deg,#F3E8FF 0%,#EDE9FE 100%)",borderRadius:16,padding:"20px",border:"1px solid #D8B4FE"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+                <span style={{fontSize:28}}>⭐</span>
+                <div>
+                  <div style={{fontSize:15,fontWeight:700,color:"#6B21A8"}}>Upgrade to Premium</div>
+                  <div style={{fontSize:12,color:"#9333EA"}}>£5.99/month · 30 day free trial</div>
+                </div>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
+                {["Unlimited AI meal planning","Auto-generated shopping lists","Fitness & health goals","Priority support"].map(f=>(
+                  <div key={f} style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#6B21A8"}}>
+                    <span style={{color:"#22C55E",fontWeight:700}}>✓</span>{f}
+                  </div>
+                ))}
+              </div>
+              <button style={{width:"100%",padding:"12px",background:"#A855F7",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>
+                Start free trial — coming soon
+              </button>
+            </div>
           </div>
         )}
 
