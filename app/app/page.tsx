@@ -135,6 +135,9 @@ export default function PlannerApp() {
   useEffect(() => {
     if (isSignedIn && user) {
       const metadata = user.publicMetadata as { trialStartDate?: string; subscription?: { status?: string } };
+      const noTrial = !metadata?.trialStartDate;
+      const noSub = !metadata?.subscription?.status;
+      if (noTrial && noSub) {
         fetch("/api/start-trial", { method: "POST" })
           .then(() => user.reload())
           .catch(console.error);
