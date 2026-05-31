@@ -4,9 +4,10 @@
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 
-export type Tier = "free" | "premium" | "premiumPlus";
+export type Tier = "free" | "trial" | "premium" | "premiumPlus";
 
 const FREE_PLAN_LIMIT = 3; // plans per week
+const TRIAL_DAYS = 14;
 
 function getWeekKey() {
   const now = new Date();
@@ -15,17 +16,29 @@ function getWeekKey() {
   return `sd_usage_${now.getFullYear()}_w${weekNum}`;
 }
 
+export function getTrialDaysRemaining(trialStartDate: string | undefined): number {
+  if (!trialStartDate) return 0;
+  const start = new Date(trialStartDate);
+  const now = new Date();
+  const daysUsed = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(0, TRIAL_DAYS - daysUsed);
+}
+
 export function useSubscription() {
   const { user, isSignedIn } = useUser();
   const [tier, setTier] = useState<Tier>("free");
   const [plansThisWeek, setPlansThisWeek] = useState(0);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState(0);
 
   useEffect(() => {
     if (!isSignedIn || !user) return;
 
-    // Get tier from Clerk public metadata
-    const metadata = user.publicMetadata as { subscription?: { status?: string; plan?: string } };
+    const metadata = user.publicMetadata as {
+      subscription?: { status?: string; plan?: string };
+      trialStartDate?: string;
+    };
     const sub = metadata?.subscription;
+    const trialStartDate = metadata?.trialStartDate;
 
     if (sub?.status === "active") {
       if (sub?.plan === "premiumPlus") {
@@ -35,8 +48,17 @@ export function useSubscription() {
       } else {
         setTier("free");
       }
+      setTrialDaysRemaining(0);
     } else {
-      setTier("free");
+      // Check trial
+      const daysRemaining = getTrialDaysRemaining(trialStartDate);
+      if (daysRemaining > 0) {
+        setTier("trial");
+        setTrialDaysRemaining(daysRemaining);
+      } else {
+        setTier("free");
+        setTrialDaysRemaining(0);
+      }
     }
 
     // Load usage count from localStorage
@@ -54,17 +76,20 @@ export function useSubscription() {
     return next;
   };
 
-  const canGeneratePlan = tier !== "free" || plansThisWeek < FREE_PLAN_LIMIT;
+  const isTrialOrPaid = tier === "trial" || tier === "premium" || tier === "premiumPlus";
+
+  const canGeneratePlan = isTrialOrPaid || plansThisWeek < FREE_PLAN_LIMIT;
   const plansRemaining = Math.max(0, FREE_PLAN_LIMIT - plansThisWeek);
-  const canUseFridge = tier !== "free";
-  const canDownloadCalendar = tier !== "free";
-  const canExportPDF = tier !== "free";
+  const canUseFridge = isTrialOrPaid;
+  const canDownloadCalendar = isTrialOrPaid;
+  const canExportPDF = isTrialOrPaid;
   const canUseNutritionCoach = tier === "premiumPlus";
 
   return {
     tier,
     plansThisWeek,
     plansRemaining,
+    trialDaysRemaining,
     canGeneratePlan,
     canUseFridge,
     canDownloadCalendar,
@@ -72,5 +97,6 @@ export function useSubscription() {
     canUseNutritionCoach,
     incrementUsage,
     FREE_PLAN_LIMIT,
+    TRIAL_DAYS,
   };
 }

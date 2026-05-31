@@ -92,6 +92,13 @@ export default function AccountPage() {
         name: user.fullName || "",
       }, { onConflict: "id" });
 
+      // Set trial start date if not already set
+      const metadata = user.publicMetadata as { trialStartDate?: string; subscription?: { status?: string } };
+      if (!metadata?.trialStartDate && !metadata?.subscription?.status) {
+        await fetch("/api/start-trial", { method: "POST" });
+        await user.reload();
+      }
+
       // Load saved plans
       const { data: plans } = await supabase
         .from("meal_plans")
