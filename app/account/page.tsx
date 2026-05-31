@@ -59,6 +59,7 @@ export default function AccountPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -111,7 +112,6 @@ export default function AccountPage() {
   }
 
   const tabs = ["overview","meal plans","favourites","settings"];
-  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
   return (
     <div style={{minHeight:"100vh",background:"#F9FAFB",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
