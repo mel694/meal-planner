@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import GoogleAnalytics from "../components/GoogleAnalytics";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,6 +39,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <Script
+            src="https://cdn.cookie-script.com/s/cc6acd111c17c31e6e59e206636cdcc2.js"
+            strategy="beforeInteractive"
+            type="text/javascript"
+          />
+        </head>
         <body style={{ margin: 0, padding: 0, boxSizing: "border-box" }}>
           <GoogleAnalytics />
           {children}
