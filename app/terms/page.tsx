@@ -87,8 +87,8 @@ export default function TermsPage() {
             <p>Seven Dinners offers a free tier and paid subscription plans:</p>
             <ul>
               <li><strong>Free plan</strong> — basic meal planning features at no cost</li>
-              <li><strong>Premium (£5.99/month)</strong> — unlimited planning, fitness goals, fridge scanning, and more</li>
-              <li><strong>Premium Plus (£10.99/month)</strong> — everything in Premium plus AI nutrition coaching</li>
+              <li><strong>Premium (£7.99/month)</strong> — unlimited planning, fitness goals, fridge scanning, and more</li>
+              <li><strong>Premium Plus (£12.99/month)</strong> — everything in Premium plus AI nutrition coaching</li>
             </ul>
             <p>Subscriptions are billed monthly. You can cancel at any time and your access continues until the end of the billing period. Payments are processed securely by Stripe. We do not store your payment card details.</p>
             <p>We reserve the right to change our pricing with 30 days&apos; notice to existing subscribers.</p>
