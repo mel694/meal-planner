@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     // Log whether the segment ID is available at runtime
     const segmentId = process.env.RESEND_SEGMENT_ID;
     console.log('[waitlist] RESEND_SEGMENT_ID defined:', !!segmentId);
+    console.log(`[waitlist] segment id value: >>>${segmentId}<<<`);
 
     // Add to Resend segment — using segments[] (audienceId is deprecated in SDK v6+)
     const { data: contactData, error: contactError } = await resend.contacts.create({
