@@ -1,8 +1,6 @@
 "use client";
-import { useUser, useClerk } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { supabase } from "../../lib/supabase";
 
 const Logo = () => (
   <svg width="36" height="36" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
@@ -24,115 +22,53 @@ const Logo = () => (
   </svg>
 );
 
-export default function AccountPage() {
-  const { user, isLoaded } = useUser();
-  const { signOut, user: clerkUser } = useClerk();
+type SavedPlan = { id: string; plan_text: string; created_at: string };
+type Favourite = { id: string; name: string; content: string; savedAt: number };
 
-  const deleteAccount = async () => {
-    if (deleteConfirmText !== "DELETE") return;
-    setDeleting(true);
-    try {
-      // Delete all user data from Supabase
-      const userId = user?.id;
-      if (userId) {
-        await supabase.from("meal_plans").delete().eq("user_id", userId);
-        await supabase.from("favourites").delete().eq("user_id", userId);
-        await supabase.from("scheduled_meals").delete().eq("user_id", userId);
-        await supabase.from("preferences").delete().eq("user_id", userId);
-        await supabase.from("profiles").delete().eq("id", userId);
-      }
-      // Delete Clerk account
-      await clerkUser?.delete();
-      // Sign out and redirect
-      await signOut();
-      window.location.href = "/";
-    } catch (err) {
-      console.error("Delete error:", err);
-      setDeleting(false);
-      alert("Something went wrong. Please contact hello@sevendinners.co.uk to delete your account.");
-    }
-  };
-  const [savedPlans, setSavedPlans] = useState<any[]>([]);
-  const [favourites, setFavourites] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [deleting, setDeleting] = useState(false);
+export default function MyPlansPage() {
+  const [savedPlans, setSavedPlans] = useState<SavedPlan[]>([]);
+  const [favourites, setFavourites] = useState<Favourite[]>([]);
+  const [activeTab, setActiveTab] = useState("saved plans");
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
-  const [deletingPlan, setDeletingPlan] = useState<string | null>(null);
-
-  const deletePlan = async (planId: string) => {
-    setDeletingPlan(planId);
-    try {
-      await supabase.from("meal_plans").delete().eq("id", planId);
-      setSavedPlans(prev => prev.filter(p => p.id !== planId));
-      setExpandedPlan(null);
-    } catch (e) {
-      console.error("Delete error:", e);
-    } finally {
-      setDeletingPlan(null);
-    }
-  };
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearConfirmText, setClearConfirmText] = useState("");
+  const [cleared, setCleared] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user]);
-
-  const loadUserData = async () => {
-    if (!user) return;
-    setLoading(true);
     try {
-      // Ensure profile exists
-      await supabase.from("profiles").upsert({
-        id: user.id,
-        email: user.emailAddresses[0]?.emailAddress || "",
-        name: user.fullName || "",
-      }, { onConflict: "id" });
-
-      // Set trial start date if not already set
-      const metadata = user.publicMetadata as { trialStartDate?: string; subscription?: { status?: string } };
-      if (!metadata?.trialStartDate && !metadata?.subscription?.status) {
-        await fetch("/api/start-trial", { method: "POST" });
-        await user.reload();
-      }
-
-      // Load saved plans
-      const { data: plans } = await supabase
-        .from("meal_plans")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-      setSavedPlans(plans || []);
-
-      // Load favourites
-      const { data: favs } = await supabase
-        .from("favourites")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("saved_at", { ascending: false });
-      setFavourites(favs || []);
+      const plans = JSON.parse(localStorage.getItem("sevendinners_saved_plans") || "[]");
+      setSavedPlans(plans);
+      const favs = JSON.parse(localStorage.getItem("sevendinners_favourites") || "[]");
+      setFavourites(favs);
     } catch (e) {
       console.error(e);
     }
-    setLoading(false);
+  }, []);
+
+  const deletePlan = (planId: string) => {
+    const updated = savedPlans.filter(p => p.id !== planId);
+    try {
+      localStorage.setItem("sevendinners_saved_plans", JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    setSavedPlans(updated);
+    setExpandedPlan(null);
   };
 
-  if (!isLoaded || loading) {
-    return (
-      <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#F9FAFB"}}>
-        <div style={{textAlign:"center"}}>
-          <div style={{fontSize:48,marginBottom:16}}>🍽️</div>
-          <div style={{color:"#22C55E",fontWeight:600}}>Loading your account...</div>
-        </div>
-      </div>
-    );
-  }
+  const clearAllData = () => {
+    if (clearConfirmText !== "CLEAR") return;
+    localStorage.removeItem("sevendinners_saved_plans");
+    localStorage.removeItem("sevendinners_favourites");
+    localStorage.removeItem("sevendinners_scheduled");
+    setSavedPlans([]);
+    setFavourites([]);
+    setShowClearConfirm(false);
+    setClearConfirmText("");
+    setCleared(true);
+  };
 
-  const tabs = ["overview","meal plans","favourites","settings"];
+  const tabs = ["saved plans", "favourites"];
 
   return (
     <div style={{minHeight:"100vh",background:"#F9FAFB",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -144,32 +80,18 @@ export default function AccountPage() {
             <div style={{fontSize:15,fontWeight:800,color:"#22C55E",lineHeight:1}}>Dinners</div>
           </div>
         </Link>
-        <div style={{display:"flex",gap:10,alignItems:"center"}}>
-          <Link href="/app" style={{padding:"7px 16px",background:"#22C55E",color:"white",borderRadius:100,fontSize:12,fontWeight:700,textDecoration:"none"}}>Plan my week →</Link>
-          <button onClick={()=>signOut()} style={{padding:"7px 14px",border:"1px solid #E5E7EB",background:"white",color:"#6B7280",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>Sign out</button>
-        </div>
+        <Link href="/app" style={{padding:"7px 16px",background:"#22C55E",color:"white",borderRadius:100,fontSize:12,fontWeight:700,textDecoration:"none"}}>Plan my week →</Link>
       </nav>
 
       <div style={{background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",padding:"32px 24px 48px"}}>
         <div style={{maxWidth:680,margin:"0 auto"}}>
-          <div style={{display:"flex",alignItems:"center",gap:16}}>
-            {user?.imageUrl && (
-              <img src={user.imageUrl} alt="" style={{width:56,height:56,borderRadius:"50%",border:"3px solid white",boxShadow:"0 4px 12px rgba(0,0,0,0.1)"}}/>
-            )}
-            <div>
-              <h1 style={{fontSize:24,fontWeight:800,color:"#14532D",margin:0,letterSpacing:"-0.5px"}}>
-                Welcome back{user?.firstName ? `, ${user.firstName}` : ""}! 👋
-              </h1>
-              <p style={{fontSize:14,color:"#4B5563",margin:"4px 0 0"}}>{user?.emailAddresses[0]?.emailAddress}</p>
-            </div>
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginTop:24}}>
+          <h1 style={{fontSize:24,fontWeight:800,color:"#14532D",margin:"0 0 4px",letterSpacing:"-0.5px"}}>My Plans</h1>
+          <p style={{fontSize:14,color:"#4B5563",margin:0}}>Your saved meal plans and favourite recipes — stored in this browser.</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:20}}>
             {[
-              { icon:"📅", label:"Meal plans saved", value:savedPlans.length },
-              { icon:"⭐", label:"Favourite recipes", value:favourites.length },
-              { icon:"🥗", label:"Account type", value:(user?.publicMetadata as any)?.subscription?.status === "active" ? ((user?.publicMetadata as any)?.subscription?.plan === "premiumPlus" ? "Premium Plus" : "Premium") : "Free" },
-            ].map((stat,i) => (
+              { icon:"📅", label:"Saved plans", value: savedPlans.length },
+              { icon:"⭐", label:"Favourite recipes", value: favourites.length },
+            ].map((stat, i) => (
               <div key={i} style={{background:"white",borderRadius:14,padding:"16px",textAlign:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.04)",border:"1px solid #E5E7EB"}}>
                 <div style={{fontSize:24,marginBottom:4}}>{stat.icon}</div>
                 <div style={{fontSize:22,fontWeight:800,color:"#14532D"}}>{stat.value}</div>
@@ -190,89 +112,19 @@ export default function AccountPage() {
           ))}
         </div>
 
-        {activeTab==="overview" && (
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            <div style={{background:"white",borderRadius:16,padding:"20px",border:"1px solid #E5E7EB"}}>
-              <div style={{fontSize:15,fontWeight:700,color:"#14532D",marginBottom:16}}>Quick actions</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                {[
-                  { icon:"🍽️", label:"Plan this week's dinners", href:"/app", color:"#22C55E", bg:"#F0FDF4" },
-                  { icon:"⭐", label:"View saved favourites", action:()=>setActiveTab("favourites"), color:"#F59E0B", bg:"#FEF3C7" },
-                  { icon:"📅", label:"View meal plan history", action:()=>setActiveTab("meal plans"), color:"#3B82F6", bg:"#DBEAFE" },
-                  { icon:"⚙️", label:"Account settings", action:()=>setActiveTab("settings"), color:"#8B5CF6", bg:"#F3E8FF" },
-                ].map((item,i) => (
-                  item.href ? (
-                    <Link key={i} href={item.href} style={{display:"flex",alignItems:"center",gap:10,padding:"14px",background:item.bg,borderRadius:12,textDecoration:"none",border:`1px solid ${item.color}20`}}>
-                      <span style={{fontSize:22}}>{item.icon}</span>
-                      <span style={{fontSize:13,fontWeight:600,color:item.color,lineHeight:1.3}}>{item.label}</span>
-                    </Link>
-                  ) : (
-                    <button key={i} onClick={item.action} style={{display:"flex",alignItems:"center",gap:10,padding:"14px",background:item.bg,borderRadius:12,border:`1px solid ${item.color}20`,cursor:"pointer",textAlign:"left"}}>
-                      <span style={{fontSize:22}}>{item.icon}</span>
-                      <span style={{fontSize:13,fontWeight:600,color:item.color,lineHeight:1.3}}>{item.label}</span>
-                    </button>
-                  )
-                ))}
-              </div>
-            </div>
-
-            {(user?.publicMetadata as any)?.subscription?.status === "active" ? (
-              <div style={{background:"linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%)",borderRadius:16,padding:"20px",border:"1px solid #BBF7D0"}}>
-                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
-                  <span style={{fontSize:28}}>✅</span>
-                  <div>
-                    <div style={{fontSize:15,fontWeight:700,color:"#14532D"}}>
-                      {(user?.publicMetadata as any)?.subscription?.plan === "premiumPlus" ? "Premium Plus" : "Premium"} — Active
-                    </div>
-                    <div style={{fontSize:12,color:"#16A34A"}}>
-                      {(user?.publicMetadata as any)?.subscription?.plan === "premiumPlus" ? "£12.99/month" : "£7.99/month"} · All features unlocked
-                    </div>
-                  </div>
-                </div>
-                <div style={{fontSize:13,color:"#15803D"}}>Thank you for subscribing! Enjoy unlimited meal planning. 🎉</div>
-              </div>
-            ) : (
-              <div style={{background:"linear-gradient(135deg,#F3E8FF 0%,#EDE9FE 100%)",borderRadius:16,padding:"20px",border:"1px solid #D8B4FE"}}>
-                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                  <span style={{fontSize:28}}>⭐</span>
-                  <div>
-                    <div style={{fontSize:15,fontWeight:700,color:"#6B21A8"}}>Upgrade to Premium</div>
-                    <div style={{fontSize:12,color:"#9333EA"}}>From £7.99/month · Cancel anytime</div>
-                  </div>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
-                  {["Unlimited AI meal planning","Fridge scanning","Calendar download","PDF export","Priority support"].map(f=>(
-                    <div key={f} style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#6B21A8"}}>
-                      <span style={{color:"#22C55E",fontWeight:700}}>✓</span>{f}
-                    </div>
-                  ))}
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                  <button onClick={async()=>{const r=await fetch("/api/stripe/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({plan:"premium"})});const d=await r.json();if(d.url)window.location.href=d.url;}} style={{width:"100%",padding:"12px",background:"#A855F7",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-                    Upgrade to Premium — £7.99/month
-                  </button>
-                  <button onClick={async()=>{const r=await fetch("/api/stripe/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({plan:"premiumPlus"})});const d=await r.json();if(d.url)window.location.href=d.url;}} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#7C3AED,#A855F7)",color:"white",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-                    Upgrade to Premium Plus — £12.99/month
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab==="meal plans" && (
+        {activeTab==="saved plans" && (
           <div style={{background:"white",borderRadius:16,padding:"20px",border:"1px solid #E5E7EB"}}>
             <div style={{fontSize:15,fontWeight:700,color:"#14532D",marginBottom:16}}>Your saved meal plans</div>
             {savedPlans.length === 0 ? (
               <div style={{textAlign:"center",padding:"40px 20px"}}>
                 <div style={{fontSize:48,marginBottom:12}}>📅</div>
                 <div style={{fontSize:15,fontWeight:600,color:"#14532D",marginBottom:8}}>No saved plans yet</div>
-                <div style={{fontSize:13,color:"#6B7280",marginBottom:16}}>Generate your first meal plan and it will appear here</div>
+                <div style={{fontSize:13,color:"#6B7280",marginBottom:16}}>Generate a meal plan and tap "Save plan" to keep it here</div>
                 <Link href="/app" style={{display:"inline-block",padding:"12px 24px",background:"#22C55E",color:"white",borderRadius:10,fontSize:13,fontWeight:700,textDecoration:"none"}}>Plan my week →</Link>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {savedPlans.map((plan,i) => (
+                {savedPlans.map((plan, i) => (
                   <div key={plan.id} style={{borderRadius:10,border:"1px solid #E5E7EB",overflow:"hidden"}}>
                     <div
                       onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
@@ -294,6 +146,7 @@ export default function AccountPage() {
                             const lines = section.trim().split("\n").filter(Boolean);
                             const title = lines[0];
                             const body = lines.slice(1).join("\n");
+                            if (!title) return null;
                             return (
                               <div key={idx} style={{background:"#F9FAFB",borderRadius:10,padding:"12px 14px",border:"1px solid #E5E7EB"}}>
                                 <div style={{fontSize:13,fontWeight:700,color:"#14532D",marginBottom:6}}>🍽️ {title}</div>
@@ -304,10 +157,9 @@ export default function AccountPage() {
                         </div>
                         <button
                           onClick={() => deletePlan(plan.id)}
-                          disabled={deletingPlan === plan.id}
                           style={{width:"100%",padding:"10px",background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer"}}
                         >
-                          {deletingPlan === plan.id ? "Deleting..." : "🗑️ Delete this meal plan"}
+                          🗑️ Delete this plan
                         </button>
                       </div>
                     )}
@@ -325,17 +177,15 @@ export default function AccountPage() {
               <div style={{textAlign:"center",padding:"40px 20px"}}>
                 <div style={{fontSize:48,marginBottom:12}}>⭐</div>
                 <div style={{fontSize:15,fontWeight:600,color:"#14532D",marginBottom:8}}>No favourites saved yet</div>
-                <div style={{fontSize:13,color:"#6B7280",marginBottom:16}}>Star recipes you love and they'll appear here</div>
+                <div style={{fontSize:13,color:"#6B7280",marginBottom:16}}>Tap the ⭐ on any meal to save it as a favourite</div>
                 <Link href="/app" style={{display:"inline-block",padding:"12px 24px",background:"#22C55E",color:"white",borderRadius:10,fontSize:13,fontWeight:700,textDecoration:"none"}}>Generate a meal plan →</Link>
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {favourites.map(fav => (
-                  <div key={fav.id} style={{padding:"12px 14px",background:"#FFFBEB",borderRadius:10,border:"1px solid #FEF3C7",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <div>
-                      <div style={{fontSize:13,fontWeight:600,color:"#92400E"}}>⭐ {fav.name}</div>
-                      <div style={{fontSize:11,color:"#B45309",marginTop:2}}>Saved {new Date(fav.saved_at).toLocaleDateString("en-GB")}</div>
-                    </div>
+                  <div key={fav.id} style={{padding:"12px 14px",background:"#FFFBEB",borderRadius:10,border:"1px solid #FEF3C7"}}>
+                    <div style={{fontSize:13,fontWeight:600,color:"#92400E"}}>⭐ {fav.name}</div>
+                    <div style={{fontSize:11,color:"#B45309",marginTop:2}}>Saved {new Date(fav.savedAt).toLocaleDateString("en-GB")}</div>
                   </div>
                 ))}
               </div>
@@ -343,72 +193,48 @@ export default function AccountPage() {
           </div>
         )}
 
-        {activeTab==="settings" && (
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            <div style={{background:"white",borderRadius:16,padding:"20px",border:"1px solid #E5E7EB"}}>
-              <div style={{fontSize:15,fontWeight:700,color:"#14532D",marginBottom:16}}>Account details</div>
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                <div style={{padding:"12px 14px",background:"#F9FAFB",borderRadius:10,border:"1px solid #E5E7EB"}}>
-                  <div style={{fontSize:11,color:"#6B7280",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>Name</div>
-                  <div style={{fontSize:14,fontWeight:600,color:"#14532D"}}>{user?.fullName || "Not set"}</div>
-                </div>
-                <div style={{padding:"12px 14px",background:"#F9FAFB",borderRadius:10,border:"1px solid #E5E7EB"}}>
-                  <div style={{fontSize:11,color:"#6B7280",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>Email</div>
-                  <div style={{fontSize:14,fontWeight:600,color:"#14532D"}}>{user?.emailAddresses[0]?.emailAddress}</div>
-                </div>
-                <div style={{padding:"12px 14px",background:"#F9FAFB",borderRadius:10,border:"1px solid #E5E7EB"}}>
-                  <div style={{fontSize:11,color:"#6B7280",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:4}}>Plan</div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <div style={{fontSize:14,fontWeight:600,color:"#14532D"}}>{(user?.publicMetadata as any)?.subscription?.status === "active" ? ((user?.publicMetadata as any)?.subscription?.plan === "premiumPlus" ? "Premium Plus" : "Premium") : "Free"}</div>
-                    <span style={{fontSize:11,padding:"3px 10px",background:"#F0FDF4",color:"#22C55E",borderRadius:100,fontWeight:600,border:"1px solid #BBF7D0"}}>active</span>
-                  </div>
-                </div>
+        <div style={{marginTop:24,background:"#FFF5F5",borderRadius:16,padding:"20px",border:"2px solid #FECACA"}}>
+          <div style={{fontSize:15,fontWeight:700,color:"#DC2626",marginBottom:4}}>Clear my data</div>
+          <p style={{fontSize:13,color:"#6B7280",marginBottom:12,lineHeight:1.5}}>
+            Removes all saved plans, favourite recipes, and scheduled meals from this browser. This cannot be undone.
+          </p>
+          {cleared ? (
+            <div style={{textAlign:"center",padding:"16px",background:"#F0FDF4",borderRadius:10,border:"1px solid #BBF7D0"}}>
+              <div style={{fontSize:15,fontWeight:600,color:"#14532D"}}>✅ All data cleared</div>
+              <div style={{fontSize:12,color:"#4B5563",marginTop:4}}>Your browser storage has been wiped.</div>
+            </div>
+          ) : !showClearConfirm ? (
+            <button onClick={()=>setShowClearConfirm(true)} style={{width:"100%",padding:"12px",background:"white",color:"#DC2626",border:"2px solid #FECACA",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}}>
+              🗑️ Clear my data
+            </button>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <div style={{padding:"12px 14px",background:"#FEF2F2",borderRadius:10,border:"1px solid #FECACA"}}>
+                <div style={{fontSize:13,fontWeight:600,color:"#DC2626",marginBottom:8}}>Are you sure? Type CLEAR to confirm:</div>
+                <input
+                  type="text"
+                  value={clearConfirmText}
+                  onChange={e => setClearConfirmText(e.target.value)}
+                  placeholder="Type CLEAR here"
+                  style={{width:"100%",padding:"10px 12px",border:"2px solid #FECACA",borderRadius:8,fontSize:14,color:"#374151",outline:"none",boxSizing:"border-box"}}
+                />
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                <button onClick={()=>{setShowClearConfirm(false);setClearConfirmText("");}} style={{padding:"11px",background:"white",color:"#6B7280",border:"1px solid #E5E7EB",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer"}}>
+                  Cancel
+                </button>
+                <button
+                  onClick={clearAllData}
+                  disabled={clearConfirmText !== "CLEAR"}
+                  style={{padding:"11px",background:clearConfirmText==="CLEAR"?"#DC2626":"#FCA5A5",color:"white",border:"none",borderRadius:10,fontSize:13,fontWeight:700,cursor:clearConfirmText==="CLEAR"?"pointer":"not-allowed"}}
+                >
+                  Yes, clear everything
+                </button>
               </div>
             </div>
+          )}
+        </div>
 
-            <div style={{background:"white",borderRadius:16,padding:"20px",border:"1px solid #E5E7EB"}}> 
-              <div style={{fontSize:15,fontWeight:700,color:"#14532D",marginBottom:12}}>Account actions</div>
-              <button onClick={()=>signOut()} style={{width:"100%",padding:"12px",background:"#F9FAFB",color:"#374151",border:"1px solid #E5E7EB",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",marginBottom:8}}>
-                Sign out
-              </button>
-            </div>
-
-            <div style={{background:"#FFF5F5",borderRadius:16,padding:"20px",border:"2px solid #FECACA"}}>
-              <div style={{fontSize:15,fontWeight:700,color:"#DC2626",marginBottom:4}}>⚠️ Danger zone</div>
-              <p style={{fontSize:13,color:"#6B7280",marginBottom:12,lineHeight:1.5}}>Permanently deletes your account and all your data including meal plans, favourites and preferences. This cannot be undone.</p>
-              {!showDeleteConfirm ? (
-                <button onClick={()=>setShowDeleteConfirm(true)} style={{width:"100%",padding:"12px",background:"white",color:"#DC2626",border:"2px solid #FECACA",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}}>
-                  🗑️ Delete my account
-                </button>
-              ) : (
-                <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                  <div style={{padding:"12px 14px",background:"#FEF2F2",borderRadius:10,border:"1px solid #FECACA"}}>
-                    <div style={{fontSize:13,fontWeight:600,color:"#DC2626",marginBottom:8}}>Are you absolutely sure? Type DELETE to confirm:</div>
-                    <input
-                      type="text"
-                      value={deleteConfirmText}
-                      onChange={e=>setDeleteConfirmText(e.target.value)}
-                      placeholder="Type DELETE here"
-                      style={{width:"100%",padding:"10px 12px",border:"2px solid #FECACA",borderRadius:8,fontSize:14,color:"#374151",outline:"none",boxSizing:"border-box"}}
-                    />
-                  </div>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                    <button onClick={()=>{setShowDeleteConfirm(false);setDeleteConfirmText("")}} style={{padding:"11px",background:"white",color:"#6B7280",border:"1px solid #E5E7EB",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer"}}>
-                      Cancel
-                    </button>
-                    <button
-                      onClick={deleteAccount}
-                      disabled={deleteConfirmText !== "DELETE" || deleting}
-                      style={{padding:"11px",background:deleteConfirmText==="DELETE"?"#DC2626":"#FCA5A5",color:"white",border:"none",borderRadius:10,fontSize:13,fontWeight:700,cursor:deleteConfirmText==="DELETE"?"pointer":"not-allowed",opacity:deleting?0.7:1}}
-                    >
-                      {deleting ? "Deleting..." : "Yes, delete everything"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

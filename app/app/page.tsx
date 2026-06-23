@@ -1,9 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 import { trackEvent } from "../../components/GoogleAnalytics";
-import { supabase } from "../../lib/supabase";
 import { useSubscription } from "@/lib/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 
@@ -123,27 +121,7 @@ export default function PlannerApp() {
     try { localStorage.setItem("sevendinners_scheduled", JSON.stringify(scheduled)); } catch (e) {}
   }, [scheduled]);
 
-  const { user, isSignedIn } = useUser();
-  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  useEffect(() => {
-    if (searchParams?.get("success") === "true") {
-      setTimeout(() => window.location.replace("/app"), 2500);
-    }
-  }, []);
   const { canGeneratePlan, canDownloadCalendar, canExportPDF, incrementUsage } = useSubscription();
-
-  useEffect(() => {
-    if (isSignedIn && user) {
-      const metadata = user.publicMetadata as { trialStartDate?: string; subscription?: { status?: string } };
-      const noTrial = !metadata?.trialStartDate;
-      const noSub = !metadata?.subscription?.status;
-      if (noTrial && noSub) {
-        fetch("/api/start-trial", { method: "POST" })
-          .then(() => user.reload())
-          .catch(console.error);
-      }
-    }
-  }, [isSignedIn, user]);
   const [upgradeModal, setUpgradeModal] = useState<"plan_limit" | "fridge" | "calendar" | "pdf" | "nutrition" | null>(null);
   const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
   const totalPeople = prefs.adults + prefs.children;
@@ -366,30 +344,26 @@ export default function PlannerApp() {
   const handlePrint = () => { if (!canExportPDF) { setUpgradeModal("pdf"); return; } window.print(); };
 
   const [planSaved, setPlanSaved] = useState(false);
-  const savePlan = async () => {
-    if (!isSignedIn || !user) {
-      window.location.href = "/sign-up?redirect=/app";
-      return;
-    }
+  const savePlan = () => {
     try {
-      const { error } = await supabase.from("meal_plans").insert({
-        user_id: user.id,
+      const existing = JSON.parse(localStorage.getItem("sevendinners_saved_plans") || "[]");
+      const newPlan = {
+        id: `plan-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         plan_text: mealPlan,
         created_at: new Date().toISOString(),
-      });
-      if (error) {
-        console.error("Supabase save error:", error.message);
-        setSavedToast("Could not save: " + error.message);
-        setTimeout(() => setSavedToast(""), 4000);
+      };
+      localStorage.setItem("sevendinners_saved_plans", JSON.stringify([newPlan, ...existing]));
+      setPlanSaved(true);
+      setSavedToast("✅ Plan saved! View it in My Plans.");
+      setTimeout(() => setSavedToast(""), 3000);
+    } catch (e: any) {
+      if (e?.name === "QuotaExceededError") {
+        setSavedToast("Your browser storage is full — go to My Plans to delete some old ones.");
+        setTimeout(() => setSavedToast(""), 6000);
       } else {
-        setPlanSaved(true);
-        setSavedToast("Meal plan saved to your account!");
-        setTimeout(() => setSavedToast(""), 3000);
+        setSavedToast("Something went wrong, please try again.");
+        setTimeout(() => setSavedToast(""), 4000);
       }
-    } catch (e) {
-      console.error("Save error:", e);
-      setSavedToast("Something went wrong, please try again.");
-      setTimeout(() => setSavedToast(""), 4000);
     }
   };
 
@@ -634,19 +608,12 @@ export default function PlannerApp() {
           </button>
           {step==="plan" && <button onClick={handlePrint} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>}
           {step==="plan" && <button onClick={downloadCalendar} style={{background:"#EFF6FF",color:"#1D4ED8",border:"1px solid #BFDBFE",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>📅 Calendar</button>}
-          {step==="plan" && isSignedIn && <button onClick={savePlan} disabled={planSaved} style={{background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",border:"1px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save plan"}</button>}
+          {step==="plan" && <button onClick={savePlan} disabled={planSaved} style={{background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",border:"1px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save plan"}</button>}
           {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"white",color:"#6B7280",border:"1px solid #E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
           <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
             💬<span className="nav-text" style={{marginLeft:4}}>Feedback</span>
           </Link>
-          {isSignedIn ? (
-            <Link href="/account" style={{background:"#22C55E",color:"white",border:"none",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
-              {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:20,height:20,borderRadius:"50%"}}/>}
-              Account
-            </Link>
-          ) : (
-            <Link href="/sign-in" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,fontWeight:600,textDecoration:"none"}}>Log in</Link>
-          )}
+          <Link href="/account" style={{background:"#22C55E",color:"white",border:"none",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none"}}>My Plans</Link>
         </div>
       </nav>
 
@@ -1034,7 +1001,7 @@ export default function PlannerApp() {
                   <button onClick={handlePrint} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #22C55E",background:"#F0FDF4",color:"#22C55E",cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>
                   <button onClick={downloadCalendar} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #BFDBFE",background:"#EFF6FF",color:"#1D4ED8",cursor:"pointer",fontWeight:600}}>📅 Add to Calendar</button>
                   <button onClick={generatePlan} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #E5E7EB",background:"white",color:"#22C55E",cursor:"pointer",fontWeight:600}}>↻ new plan</button>
-                  {isSignedIn && <button onClick={savePlan} disabled={planSaved} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save"}</button>}
+                  <button onClick={savePlan} disabled={planSaved} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save"}</button>
                 </div>
               </div>
 
