@@ -6,6 +6,10 @@ import { useEffect, useState } from "react";
 
 export type Tier = "free" | "trial" | "premium" | "premiumPlus";
 
+// Set to false to give all users full access with no limits.
+// Set back to true to re-enable subscription gating.
+const PAYWALL_ENABLED = false;
+
 const FREE_PLAN_LIMIT = 3; // plans per week
 const TRIAL_DAYS = 14;
 
@@ -84,6 +88,24 @@ export function useSubscription() {
   const canDownloadCalendar = isTrialOrPaid;
   const canExportPDF = isTrialOrPaid;
   const canUseNutritionCoach = tier === "premiumPlus";
+
+  // When PAYWALL_ENABLED is false, override everything to give full access.
+  if (!PAYWALL_ENABLED) {
+    return {
+      tier: "premiumPlus" as Tier,
+      plansThisWeek: 0,
+      plansRemaining: Infinity,
+      trialDaysRemaining: 0,
+      canGeneratePlan: true,
+      canUseFridge: true,
+      canDownloadCalendar: true,
+      canExportPDF: true,
+      canUseNutritionCoach: true,
+      incrementUsage,
+      FREE_PLAN_LIMIT,
+      TRIAL_DAYS,
+    };
+  }
 
   return {
     tier,

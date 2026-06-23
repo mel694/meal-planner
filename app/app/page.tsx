@@ -130,7 +130,7 @@ export default function PlannerApp() {
       setTimeout(() => window.location.replace("/app"), 2500);
     }
   }, []);
-  const { tier, plansRemaining, trialDaysRemaining, canGeneratePlan, canUseFridge, canDownloadCalendar, canExportPDF, incrementUsage, FREE_PLAN_LIMIT } = useSubscription();
+  const { canGeneratePlan, canDownloadCalendar, canExportPDF, incrementUsage } = useSubscription();
 
   useEffect(() => {
     if (isSignedIn && user) {
@@ -144,7 +144,7 @@ export default function PlannerApp() {
       }
     }
   }, [isSignedIn, user]);
-  const [upgradeModal, setUpgradeModal] = useState(null);
+  const [upgradeModal, setUpgradeModal] = useState<"plan_limit" | "fridge" | "calendar" | "pdf" | "nutrition" | null>(null);
   const sm = SUPERMARKETS.find(s => s.id === selectedSupermarket) || SUPERMARKETS[0];
   const totalPeople = prefs.adults + prefs.children;
 
@@ -762,12 +762,7 @@ export default function PlannerApp() {
 
       <div style={{maxWidth:680,margin:"-20px auto 0",padding:"0 16px 48px",position:"relative",zIndex:1}}>
 
-        {tier === "free" && step !== "plan" && (
-        <div style={{background:"#FEF9C3",borderBottom:"1px solid #FDE68A",padding:"8px 16px",textAlign:"center",fontSize:13,color:"#92400E"}}>
-          ⚡ Free plan: <strong>{plansRemaining} of {FREE_PLAN_LIMIT} meal plans</strong> remaining this week.{" "}
-          <a href="/pricing" style={{color:"#D97706",fontWeight:700,textDecoration:"underline"}}>Upgrade for unlimited →</a>
-        </div>
-      )}
+        {/* Free plan banner disabled — all features are free (PAYWALL_ENABLED = false in useSubscription.ts) */}
       {step==="prefs" && !loading && (
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
 
