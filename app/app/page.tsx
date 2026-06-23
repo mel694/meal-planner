@@ -608,7 +608,7 @@ export default function PlannerApp() {
           </button>
           {step==="plan" && <button onClick={handlePrint} style={{background:"#F0FDF4",color:"#14532D",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>}
           {step==="plan" && <button onClick={downloadCalendar} style={{background:"#EFF6FF",color:"#1D4ED8",border:"1px solid #BFDBFE",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600}}>📅 Calendar</button>}
-          {step==="plan" && <button onClick={savePlan} disabled={planSaved} style={{background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",border:"1px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save plan"}</button>}
+          {step==="plan" && <button onClick={savePlan} disabled={planSaved} style={{background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",border:"1px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save my week"}</button>}
           {step==="plan" && <button onClick={()=>setStep("prefs")} style={{background:"white",color:"#6B7280",border:"1px solid #E5E7EB",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:500}}>← edit</button>}
           <Link href="/feedback" style={{background:"white",color:"#22C55E",border:"1px solid #BBF7D0",padding:"7px 14px",borderRadius:100,fontSize:12,cursor:"pointer",fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
             💬<span className="nav-text" style={{marginLeft:4}}>Feedback</span>
@@ -1001,7 +1001,7 @@ export default function PlannerApp() {
                   <button onClick={handlePrint} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #22C55E",background:"#F0FDF4",color:"#22C55E",cursor:"pointer",fontWeight:600}}>🖨️ PDF</button>
                   <button onClick={downloadCalendar} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #BFDBFE",background:"#EFF6FF",color:"#1D4ED8",cursor:"pointer",fontWeight:600}}>📅 Add to Calendar</button>
                   <button onClick={generatePlan} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid #E5E7EB",background:"white",color:"#22C55E",cursor:"pointer",fontWeight:600}}>↻ new plan</button>
-                  <button onClick={savePlan} disabled={planSaved} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save"}</button>
+                  <button onClick={savePlan} disabled={planSaved} style={{fontSize:12,padding:"7px 14px",borderRadius:100,border:"2px solid",borderColor:planSaved?"#BBF7D0":"#E5E7EB",background:planSaved?"#F0FDF4":"white",color:planSaved?"#22C55E":"#6B7280",cursor:planSaved?"default":"pointer",fontWeight:600}}>{planSaved?"✅ Saved":"💾 Save my week"}</button>
                 </div>
               </div>
 
@@ -1099,6 +1099,22 @@ export default function PlannerApp() {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="no-print" style={{marginTop:16}}>
+              {planSaved ? (
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"16px",background:"#F0FDF4",borderRadius:14,border:"2px solid #BBF7D0"}}>
+                  <span style={{fontSize:20}}>✅</span>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#14532D"}}>Saved to My Plans!</div>
+                    <div style={{fontSize:12,color:"#16A34A"}}>Find it any time at <a href="/account" style={{color:"#16A34A",fontWeight:700}}>My Plans →</a></div>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={savePlan} style={{width:"100%",padding:"18px",fontSize:16,fontWeight:800,background:"#22C55E",color:"white",border:"none",borderRadius:14,cursor:"pointer",boxShadow:"0 6px 20px rgba(34,197,94,0.4)",letterSpacing:"-0.2px"}}>
+                  💾 Save my week
+                </button>
+              )}
             </div>
 
             <div id="shopping" className="shopping-section" style={{marginTop:16,background:"white",borderRadius:16,border:"1px solid #E5E7EB",overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>

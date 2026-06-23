@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 
 const Logo = ({ size = 44 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
@@ -24,33 +23,11 @@ const Logo = ({ size = 44 }: { size?: number }) => (
 );
 
 export default function Home() {
-  const { user, isSignedIn } = useUser();
   const [cookieAccepted, setCookieAccepted] = React.useState(true);
   React.useEffect(() => {
     const accepted = localStorage.getItem("sd_cookie_consent");
     if (!accepted) setCookieAccepted(false);
   }, []);
-  const handleCheckout = async (plan: string) => {
-    if (!isSignedIn) {
-      window.location.href = '/sign-up';
-      return;
-    }
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert('Something went wrong. Please try again.');
-      }
-    } catch (err) {
-      alert('Something went wrong. Please try again.');
-    }
-  };
 
   const acceptCookies = () => {
     localStorage.setItem("sd_cookie_consent", "true");
@@ -93,7 +70,7 @@ export default function Home() {
       ],
       buttonText: "Get Started Free",
       buttonStyle: "outline",
-      href: "/sign-up",
+      href: "/app",
     },
     {
       name: "PREMIUM",
@@ -201,17 +178,7 @@ export default function Home() {
         <div style={{display:"flex",gap:10,alignItems:"center"}} className="nav-right">
           <Link href="/blog" style={{color:"#374151",fontSize:13,fontWeight:500,textDecoration:"none",padding:"7px 12px",borderRadius:100,border:"1px solid #E5E7EB"}}>Blog</Link>
           <Link href="/feedback" style={{color:"#374151",fontSize:13,fontWeight:500,textDecoration:"none",padding:"7px 12px",borderRadius:100,border:"1px solid #E5E7EB"}}>💬 Feedback</Link>
-          {isSignedIn ? (
-            <Link href="/account" style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none"}}>
-              {user?.imageUrl && <img src={user.imageUrl} alt="" style={{width:20,height:20,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.5)"}}/>}
-              <span>Account</span>
-            </Link>
-          ) : (
-            <>
-              <Link href="/sign-in" style={{padding:"7px 14px",border:"2px solid #22C55E",background:"white",color:"#22C55E",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Log in</Link>
-              <Link href="/sign-up" style={{padding:"7px 14px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>Sign Up</Link>
-            </>
-          )}
+          <Link href="/account" style={{padding:"7px 14px",border:"none",background:"#22C55E",color:"white",borderRadius:100,fontSize:13,fontWeight:700,textDecoration:"none",display:"inline-block"}}>My Plans</Link>
         </div>
       </nav>
 
@@ -225,12 +192,12 @@ export default function Home() {
           <p style={{fontSize:17,color:"#4B5563",lineHeight:1.6,margin:"20px 0 28px",maxWidth:480}}>
             AI meal planning, smart shopping lists and delicious recipes — all in one place.
           </p>
-          <Link href="/sign-up" style={{display:"inline-block",padding:"16px 36px",background:"#22C55E",color:"white",borderRadius:12,fontSize:16,fontWeight:700,textDecoration:"none",boxShadow:"0 8px 20px rgba(34,197,94,0.3)"}}>
-            Start Your Free Plan
+          <Link href="/app" style={{display:"inline-block",padding:"16px 36px",background:"#22C55E",color:"white",borderRadius:12,fontSize:16,fontWeight:700,textDecoration:"none",boxShadow:"0 8px 20px rgba(34,197,94,0.3)"}}>
+            Save my week →
           </Link>
           <div style={{marginTop:14,fontSize:13,color:"#6B7280",display:"flex",alignItems:"center",gap:6}}>
             <span style={{color:"#22C55E",fontSize:16}}>✓</span>
-            No card required · Cancel anytime
+            Free forever · No sign up needed
           </div>
         </div>
 
@@ -288,11 +255,11 @@ export default function Home() {
                 ))}
               </ul>
               {plan.buttonStyle==="filled" ? (
-                <button onClick={()=>handleCheckout('premium')} style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"#A855F7",color:"white",borderRadius:10,fontSize:14,fontWeight:700,border:"none",cursor:"pointer"}}>{plan.buttonText}</button>
+                <Link href="/app" style={{display:"block",textAlign:"center",padding:"13px",background:"#22C55E",color:"white",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>Save my week →</Link>
               ) : plan.buttonStyle==="outline-green" ? (
                 <button disabled style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"#F3F4F6",color:"#9CA3AF",border:"2px solid #E5E7EB",borderRadius:10,fontSize:14,fontWeight:700,cursor:"not-allowed"}}>{plan.buttonText}</button>
               ) : (
-                <Link href={plan.href || "/sign-up"} style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
+                <Link href={plan.href || "/app"} style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
               )}
             </div>
           ))}
