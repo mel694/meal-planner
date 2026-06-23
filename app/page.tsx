@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import PricingTiers from "../components/PricingTiers";
 
 const Logo = ({ size = 44 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
@@ -51,75 +52,6 @@ export default function Home() {
     { name: "Turkey Meatballs", time: "30 mins", emoji: "🍖", bg: "#FECACA" },
   ];
 
-  const plans = [
-    {
-      name: "FREE",
-      tagline: "Get started with AI",
-      price: "£0",
-      period: "/month",
-      subprice: "Forever free",
-      icon: "🌱",
-      iconBg: "#DCFCE7",
-      iconColor: "#22C55E",
-      features: [
-        "AI generated recipes (limited)",
-        "Basic shopping list (manual)",
-        "Save up to 3 recipes",
-        "Access to free recipes",
-        "Community support",
-      ],
-      buttonText: "Get Started Free",
-      buttonStyle: "outline",
-      href: "/app",
-    },
-    {
-      name: "PREMIUM",
-      tagline: "Everything you need",
-      price: "£7.99",
-      period: "/month",
-      subprice: "Billed monthly",
-      icon: "👨‍🍳",
-      iconBg: "#F3E8FF",
-      iconColor: "#A855F7",
-      badge: "MOST POPULAR",
-      features: [
-        "AI meal planning",
-        "Family preferences",
-        "Fitness goals",
-        "Auto-generated shopping lists",
-        "Photo upload for recipes",
-        "Pantry tracking",
-        "Allergy filtering",
-        "Priority support",
-      ],
-      buttonText: "Sign Up Today",
-      buttonStyle: "filled",
-      href: "#signup",
-    },
-    {
-      name: "PREMIUM PLUS",
-      tagline: "AI nutrition coach — coming soon",
-      price: "£12.99",
-      period: "/month",
-      subprice: "Billed monthly",
-      icon: "⭐",
-      iconBg: "#DCFCE7",
-      iconColor: "#22C55E",
-      badge: "BEST VALUE",
-      features: [
-        "Everything in Premium",
-        "AI nutrition coach chatbot",
-        "Ask unlimited nutrition questions",
-        "Personalised advice & tips",
-        "Advanced goal tracking",
-        "Priority support",
-      ],
-      buttonText: "Currently in Development",
-      buttonStyle: "outline-green",
-      href: "#signup",
-    },
-  ];
-
   const supermarkets = [
     { name: "Tesco", color: "#005EB8" },
     { name: "Sainsbury's", color: "#F06C00" },
@@ -140,7 +72,6 @@ export default function Home() {
           .hero-grid{grid-template-columns:1fr!important}
           .hero-image{display:none!important}
           .hero-text h1{font-size:36px!important}
-          .plans-grid{grid-template-columns:1fr!important}
           .features-grid{grid-template-columns:1fr 1fr!important}
           .recipes-grid{grid-template-columns:1fr 1fr!important}
           .testimonial-grid{grid-template-columns:1fr!important}
@@ -224,63 +155,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section style={{padding:"40px 32px 80px",maxWidth:1100,margin:"0 auto"}} id="plans">
-        <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:6,letterSpacing:"-0.5px"}}>
+      <section style={{padding:"40px 32px 80px",maxWidth:900,margin:"0 auto"}} id="plans">
+        <h2 style={{textAlign:"center",fontSize:32,fontWeight:800,color:"#14532D",marginBottom:48,letterSpacing:"-0.5px"}}>
           Choose the plan that's right for you<span className="heart-doodle">♡</span>
         </h2>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:20,marginTop:40}} className="plans-grid">
-          {plans.map((plan,i)=>(
-            <div key={i} style={{background:"white",borderRadius:20,border:plan.badge==="MOST POPULAR"?"2px solid #A855F7":plan.badge==="BEST VALUE"?"2px solid #22C55E":"1px solid #E5E7EB",padding:"28px 24px",position:"relative",boxShadow:plan.badge?"0 8px 24px rgba(0,0,0,0.08)":"none"}}>
-              {plan.badge && (
-                <div style={{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",background:plan.badge==="MOST POPULAR"?"#A855F7":"#22C55E",color:"white",fontSize:11,fontWeight:800,padding:"5px 14px",borderRadius:100,letterSpacing:"0.05em"}}>{plan.badge}</div>
-              )}
-              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-                <div style={{width:48,height:48,borderRadius:"50%",background:plan.iconBg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{plan.icon}</div>
-                <div>
-                  <div style={{fontSize:14,fontWeight:800,color:plan.iconColor,letterSpacing:"0.05em"}}>{plan.name}</div>
-                  <div style={{fontSize:13,color:"#6B7280"}}>{plan.tagline}</div>
-                </div>
-              </div>
-              <div style={{marginBottom:20}}>
-                <span style={{fontSize:36,fontWeight:800,color:"#14532D"}}>{plan.price}</span>
-                <span style={{fontSize:14,color:"#6B7280",marginLeft:4}}>{plan.period}</span>
-                <div style={{fontSize:12,color:"#6B7280",marginTop:2}}>{plan.subprice}</div>
-              </div>
-              <ul style={{listStyle:"none",padding:0,margin:"0 0 24px"}}>
-                {plan.features.map((f,j)=>(
-                  <li key={j} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:10,fontSize:13,color:"#374151"}}>
-                    <span style={{color:"#22C55E",fontWeight:700,flexShrink:0,marginTop:1}}>✓</span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              {plan.buttonStyle==="filled" ? (
-                <Link href="/app" style={{display:"block",textAlign:"center",padding:"13px",background:"#22C55E",color:"white",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>Save my week →</Link>
-              ) : plan.buttonStyle==="outline-green" ? (
-                <button disabled style={{display:"block",width:"100%",textAlign:"center",padding:"13px",background:"#F3F4F6",color:"#9CA3AF",border:"2px solid #E5E7EB",borderRadius:10,fontSize:14,fontWeight:700,cursor:"not-allowed"}}>{plan.buttonText}</button>
-              ) : (
-                <Link href={plan.href || "/app"} style={{display:"block",textAlign:"center",padding:"13px",background:"white",color:"#22C55E",border:"2px solid #22C55E",borderRadius:10,fontSize:14,fontWeight:700,textDecoration:"none"}}>{plan.buttonText}</Link>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div style={{marginTop:32,padding:"20px 24px",background:"#F9FAFB",borderRadius:16,display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:16}} className="trust-grid">
-          {[
-            { icon:"🔒", title:"Billed monthly", desc:"No card required" },
-            { icon:"🔄", title:"Cancel anytime", desc:"No commitments" },
-            { icon:"🛡️", title:"Your data is safe", desc:"Secure & private" },
-            { icon:"🆕", title:"Brand new", desc:"Be an early member" },
-          ].map((item,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{fontSize:22}}>{item.icon}</div>
-              <div>
-                <div style={{fontSize:13,fontWeight:700,color:"#14532D"}}>{item.title}</div>
-                <div style={{fontSize:12,color:"#6B7280"}}>{item.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <PricingTiers />
       </section>
 
       <section style={{padding:"60px 32px",background:"#F9FAFB",position:"relative",overflow:"hidden"}} id="how-it-works">
