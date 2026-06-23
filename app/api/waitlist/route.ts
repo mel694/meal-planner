@@ -11,15 +11,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
-    // Add to Resend audience — duplicate contacts are handled gracefully below
-    const { error: contactError } = await resend.contacts.create({
+    // Log whether the segment ID is available at runtime
+    const segmentId = process.env.RESEND_SEGMENT_ID;
+    console.log('[waitlist] RESEND_SEGMENT_ID defined:', !!segmentId);
+
+    // Add to Resend segment — using segments[] (audienceId is deprecated in SDK v6+)
+    const { data: contactData, error: contactError } = await resend.contacts.create({
       email,
-      audienceId: process.env.RESEND_SEGMENT_ID!,
+      segments: segmentId ? [{ id: segmentId }] : [],
     });
 
-    // 422 means the contact already exists — treat as success
+    console.log('[waitlist] contacts.create result:', JSON.stringify({ data: contactData, error: contactError }));
+
+    // Duplicate contacts return a non-fatal error — treat as success
     if (contactError && (contactError as any)?.statusCode !== 422) {
-      console.error('Resend contact error:', contactError);
+      console.error('[waitlist] contact error (non-duplicate):', contactError);
       return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
     }
 
@@ -54,8 +60,9 @@ export async function POST(req: Request) {
     });
 
     if (emailError) {
-      console.error('Resend email error:', emailError);
-      // Contact was added successfully — don't fail the whole request over the email
+      console.error('[waitlist] email error:', emailError);
+    } else {
+      console.log('[waitlist] welcome email sent ok');
     }
 
     return NextResponse.json({ success: true });
